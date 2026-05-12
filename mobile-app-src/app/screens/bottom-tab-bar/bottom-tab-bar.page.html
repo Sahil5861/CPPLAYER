@@ -1,0 +1,29 @@
+<ion-tabs>
+  <ion-tab-bar slot="bottom" mode="md">
+    <ion-tab-button tab="home2">
+      <ion-icon name="home-outline" style="font-size: 25px"></ion-icon>
+      <ion-label>Home</ion-label>
+    </ion-tab-button>
+    <ion-tab-button tab="search" *ngIf="apiService.showCat('search')">
+      <ion-icon name="search-outline" style="font-size: 25px"></ion-icon>
+      <ion-label>Search</ion-label>
+    </ion-tab-button>
+    <ion-tab-button tab="live">
+      <ion-icon name="desktop-outline" style="font-size: 25px"></ion-icon>
+      <ion-label>Live TV</ion-label>
+    </ion-tab-button>
+    <ion-tab-button tab="movies" *ngIf="apiService.showCat('movies')">
+      <ion-icon name="videocam-outline" style="font-size: 25px"></ion-icon>
+      <ion-label>Movies</ion-label> 
+    </ion-tab-button>
+    <ion-tab-button tab="webseries" *ngIf="apiService.showCat('webseries')">
+      <ion-icon name="film-outline" style="font-size: 25px"></ion-icon>
+      <ion-label>Web Series</ion-label> 
+    </ion-tab-button>
+    
+    <ion-tab-button tab="profile">
+      <ion-icon name="menu-outline" style="font-size: 25px"></ion-icon>
+      <ion-label>More</ion-label>
+    </ion-tab-button>
+  </ion-tab-bar>
+</ion-tabs>

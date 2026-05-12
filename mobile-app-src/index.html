@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <title>Mobi Free TV</title>
+
+  <base href="/" />
+
+  <meta name="color-scheme" content="light dark" />
+  <meta name="viewport"
+    content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="format-detection" content="telephone=no" />
+  <meta name="msapplication-tap-highlight" content="no" />
+  <!-- <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests" /> -->
+  <link rel="icon" type="image/png" href="assets/icon/favicon.png" />
+
+  <!-- add to homescreen for ios -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dashjs/4.7.4/dash.all.min.js"
+    integrity="sha512-LyDgm9kfqyKlZOe+QjpNA6L/ZpcjNj+cKSJ/bQLTGkKXaxYNpYGN9Fe6DpI0H0w3Da2WcXVX8ACjL14y3iWGBQ=="
+    crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="assets/hls.js"></script>
+  <!-- <script src="https://cdn.jsdelivr.net/npm/vlc-player@2.0.0/index.min.js"></script> -->
+
+  <!-- <embed type="application/x-vlc-plugin" name="player" autoplay="no" loop="no" target="udp:@239.255.12.42" />
+  <script language="javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+     <script language="javascript" src="assets/jquery-vlc.js"></script>
+<link rel="stylesheet" type="text/css" href="http://revolunet.github.com/VLCcontrols/src/styles.css" /> -->
+</head>
+
+<body>
+
+  <div id="video-overlay"
+    style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.8); z-index: 1000; display: none;">
+    <button id="close-button" style="position: absolute; top: 12px; left: 12px; z-index: 1001; background: transparent; border: none; cursor: pointer;background-color: rgba(0, 0, 0, 0.8);border-radius: 50%;width: 30px;
+    height: 30px;
+    padding: 5px;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white"
+        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
+    <button id="menu-button" style="position: absolute; top: 12px; left: 52px; z-index: 1001; background: transparent; border: none; cursor: pointer;background-color: rgba(0, 0, 0, 0.8);border-radius: 50%;width: 30px;
+    height: 30px;
+    padding:5px;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+        stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        class="feather feather-list">
+        <line x1="8" y1="6" x2="21" y2="6"></line>
+        <line x1="8" y1="12" x2="21" y2="12"></line>
+        <line x1="8" y1="18" x2="21" y2="18"></line>
+        <line x1="3" y1="6" x2="3.01" y2="6"></line>
+        <line x1="3" y1="12" x2="3.01" y2="12"></line>
+        <line x1="3" y1="18" x2="3.01" y2="18"></line>
+      </svg>
+    </button>
+    <video id="__fullscreen" controls disablePictureInPicture controlsList="nodownload nofullscreen noremoteplayback"
+      poster="assets/icon.png" preload="auto" autoplay playsinline webkit-playsinline
+      style="padding: 1px auto; background-size: 100px; background-position: center; background-repeat: no-repeat; background: white; height: 100vh; object-fit: fill; width: 100%;"
+      type="application/x-mpegURL"></video>
+  </div>
+  <div id="playlist-container" style="position: fixed; bottom: 0; right: 0; height: 100vh; overflow-y: auto; background: rgba(0, 0, 0, 0.9); color: white; z-index: 1001; display: none;">
+    <div id="close-side" style="position: fixed;
+    height: 40px;
+    text-align: left;
+    width: 100%;
+    padding: 10px 20px;
+    background: #000;"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+        stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg></div>
+    <ul id="playlist" style="list-style: none; padding: 10px; margin: 0;padding-top: 40px;">
+
+      <!-- Items will be added here -->
+    </ul>
+  </div>
+
+  <app-root></app-root>
+</body>
+
+</html>

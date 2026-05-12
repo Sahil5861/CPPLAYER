@@ -1,0 +1,35 @@
+<ion-content [fullscreen]="true" class="player-page">
+  <div class="player-shell">
+    <ng-container *ngIf="showWebFallback && canRenderIframe; else nativeLaunchState">
+      <div class="player-web-shell">
+        <button class="player-back-button" type="button" (click)="goBack()" aria-label="Go back">
+          <ion-icon name="arrow-back-outline"></ion-icon>
+        </button>
+
+        <iframe
+          class="player-frame"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowfullscreen
+          [src]="videoUrl"
+        ></iframe>
+      </div>
+    </ng-container>
+
+    <ng-template #nativeLaunchState>
+      <div class="native-launch-state">
+        <img
+          [src]="apiService.getAppLogo()"
+          (error)="apiService.handleImageErrorEvent($event, 'app')"
+          alt="App logo"
+          class="brand-logo"
+        />
+        <div class="brand-name">{{ apiService.getAppName() }}</div>
+        <div class="status-text">{{ statusText }}</div>
+        <ion-spinner
+          *ngIf="!nativeLaunchFailed || canRenderIframe"
+          name="crescent"
+        ></ion-spinner>
+      </div>
+    </ng-template>
+  </div>
+</ion-content>

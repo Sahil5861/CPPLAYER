@@ -1,0 +1,63 @@
+<ion-header mode="ios" [translucent]="false">
+  <ion-toolbar color="blackColor">
+    <div class="rowAlignCenter" style="margin: 15px; margin-bottom: 10px">
+      <ion-icon
+        (click)="goBack()"
+        name="arrow-back"
+        color="whiteColor"
+        style="font-size: 25px"
+      ></ion-icon>
+      <ion-text class="whiteColor22Bold" style="margin-left: 10px">
+        Subscribe
+      </ion-text>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div
+    class="margin20"
+    *ngFor="let item of subscriptionPlansList"
+    style="position: relative"
+  >
+    <ion-img
+      src="../../../assets/images/subscribeBg.png"
+      class="imageOverflow"
+      style="width: 100%; height: 112px; border-radius: 5px"
+    >
+    </ion-img>
+    <div (click)="goTo('subscription-payment')" class="planOverlay">
+      <ion-text class="whiteColor18Medium"> {{item.planeTitle}} </ion-text>
+      <div class="rowAlignCenter" style="justify-content: space-between">
+        <ion-text class="whiteColor22Bold"> {{item.planPeriod}} </ion-text>
+        <ion-text class="whiteColor22Bold">
+          {{item.planAmount|currency}}
+        </ion-text>
+      </div>
+    </div>
+  </div>
+
+  <div class="margin20" style="margin-top: 25px">
+    <ion-text
+      class="whiteColor20SemiBold"
+      style="margin-bottom: 10px; display: flex"
+    >
+      Subscriptions allows
+    </ion-text>
+    <div
+      *ngFor="let item of subscriptionAllowsList"
+      class="rowAlignCenter"
+      style="margin-bottom: 5px"
+    >
+      <span
+        class="material-icons"
+        style="color: var(--primaryColor); font-size: 18px"
+      >
+        task_alt
+      </span>
+      <ion-text class="grayColor16Regular" style="margin-left: 15px">
+        {{item}}
+      </ion-text>
+    </div>
+  </div>
+</ion-content>

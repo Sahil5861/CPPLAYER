@@ -1,0 +1,132 @@
+<ion-header mode="ios" [translucent]="false">
+  <ion-toolbar color="blackColor">
+    <div class="rowAlignCenter" style="margin: 15px; margin-bottom: 10px">
+      <ion-icon
+        (click)="goBack()"
+        name="arrow-back"
+        color="whiteColor"
+        style="font-size: 25px"
+      ></ion-icon>
+      <ion-text class="whiteColor22Bold" style="margin-left: 10px">
+        Settings
+      </ion-text>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div style="margin: 0 20px; margin-top: 20px">
+    <ion-text class="grayColor16Regular"> Preferred App Language </ion-text>
+    <div class="rowAlignCenter" style="justify-content: space-between">
+      <ion-text
+        class="whiteColor18Medium ellipseText"
+        style="flex: 1; -webkit-line-clamp: 1"
+      >
+        {{selectedPreferedLanguage}}
+      </ion-text>
+      <ion-icon
+        id="openLanguage"
+        name="chevron-down"
+        color="primaryColor"
+        style="font-size: 24px"
+      ></ion-icon>
+      <ion-popover
+        mode="md"
+        trigger="openLanguage"
+        style="--background: var(--lightBlackColor)"
+        #popover1
+      >
+        <ng-template>
+          <div style="padding: 10px">
+            <div *ngFor="let item of languagesList" style="margin: 5px">
+              <ion-text
+                (click)="selectedPreferedLanguage=item;popover1.dismiss()"
+                class="whiteColor18Medium"
+              >
+                {{item}}
+              </ion-text>
+            </div>
+          </div>
+        </ng-template>
+      </ion-popover>
+    </div>
+  </div>
+  <div class="divider"></div>
+
+  <div style="margin: 0 20px">
+    <ion-text class="grayColor16Regular"> Downloads </ion-text>
+    <div class="rowAlignCenter" style="justify-content: space-between">
+      <ion-text
+        class="whiteColor18Medium ellipseText"
+        style="flex: 1; -webkit-line-clamp: 1"
+      >
+        {{selectedDownloadOption}}
+      </ion-text>
+      <ion-icon
+        id="openDownload"
+        name="chevron-down"
+        color="primaryColor"
+        style="font-size: 24px"
+      ></ion-icon>
+      <ion-popover
+        mode="md"
+        trigger="openDownload"
+        style="--background: var(--lightBlackColor)"
+        #popover2
+      >
+        <ng-template>
+          <div style="padding: 10px">
+            <div *ngFor="let item of downloadOptionsList" style="margin: 5px">
+              <ion-text
+                (click)="selectedDownloadOption=item;popover2.dismiss()"
+                class="whiteColor18Medium"
+              >
+                {{item}}
+              </ion-text>
+            </div>
+          </div>
+        </ng-template>
+      </ion-popover>
+    </div>
+  </div>
+  <div class="divider"></div>
+
+  <div style="margin: 0 20px">
+    <ion-text class="grayColor16Regular"> Download Video Quality </ion-text>
+    <div class="rowAlignCenter" style="justify-content: space-between">
+      <ion-text
+        class="whiteColor18Medium ellipseText"
+        style="flex: 1; -webkit-line-clamp: 1"
+      >
+        {{selectedVideoQuality}}
+      </ion-text>
+      <ion-icon
+        id="openQuality"
+        name="chevron-down"
+        color="primaryColor"
+        style="font-size: 24px"
+      ></ion-icon>
+      <ion-popover
+        mode="md"
+        trigger="openQuality"
+        style="--background: var(--lightBlackColor)"
+        #popover3
+      >
+        <ng-template>
+          <div style="padding: 10px">
+            <div *ngFor="let item of videoQualitiesList" style="margin: 5px">
+              <ion-text
+                (click)="selectedVideoQuality=item;popover3.dismiss()"
+                class="whiteColor18Medium"
+              >
+                {{item}}
+              </ion-text>
+            </div>
+          </div>
+        </ng-template>
+      </ion-popover>
+    </div>
+  </div>
+  <div class="divider"></div>
+
+</ion-content>

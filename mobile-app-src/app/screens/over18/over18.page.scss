@@ -1,0 +1,24 @@
+.over18-grid {
+  padding: 10px 10px 16px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px 8px;
+}
+
+.over18-grid__item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.over18-grid__card {
+  cursor: pointer;
+}
+
+.over18-grid__empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+  text-align: center;
+}

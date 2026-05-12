@@ -1,0 +1,55 @@
+<ion-header [translucent]="false">
+  <ion-toolbar color="blackColor">
+    <ion-buttons slot="start">
+      <ion-back-button color="light"></ion-back-button>
+    </ion-buttons>
+    
+      <ion-title color="light">
+        All Categories
+      </ion-title>
+      
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  
+  
+
+  
+  <div *ngFor="let cat of homeCategories" style="margin-top: 25px;">
+    <div *ngIf="cat.channels.length > 0"
+      class="rowAlignCenter bordered-element"
+      style="margin: 10px 10px; justify-content: space-between"
+    >
+      <ion-text
+        class="whiteColor15SemiBold ellipseText"
+        style="-webkit-line-clamp: 1; flex: 1"
+      >
+      {{cat.text}}
+      </ion-text>
+      <ion-text (click)="seeAll(cat.channels,cat.text)" class="primaryColor14SemiBold">
+        View All
+      </ion-text>
+    </div>
+    <div *ngIf="cat.channels.length > 0" class="horizontalScroll" style="padding: 0 5px">
+      
+        <div class="horizontalScroll" style="margin: 0 5px;"  >
+          <div class="rowAlignCenter">
+            <div class="icon-image-container" *ngFor="let channel of cat.channels">
+              <ion-img
+              [src]="channel.banner"
+              class="imageOverflow icon-image"
+              
+            >
+            </ion-img>
+            </div>
+            
+          </div>
+
+        </div>
+      
+    </div>
+  </div>
+
+  
+</ion-content>

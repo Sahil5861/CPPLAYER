@@ -1,0 +1,24 @@
+<div
+  class="media-card"
+  [ngClass]="['media-card--' + variant, 'media-card--' + fit]"
+  [style.--media-card-padding]="padding"
+  [style.--media-card-background]="background"
+  (click)="handleClick()"
+>
+  <img
+    [src]="resolvedSrc"
+    [attr.alt]="alt || 'Media image'"
+    [attr.loading]="loading"
+    [referrerPolicy]="referrerPolicy"
+    decoding="async"
+    draggable="false"
+    (load)="handleLoad($event)"
+    (error)="handleError($event)"
+  />
+
+  <ion-spinner
+    *ngIf="spinner && !isLoaded"
+    name="crescent"
+    class="media-card__spinner"
+  ></ion-spinner>
+</div>

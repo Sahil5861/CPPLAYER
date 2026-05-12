@@ -1,0 +1,28 @@
+<ion-header [translucent]="false">
+  <ion-toolbar color="blackColor">
+    <ion-buttons slot="start">
+      <ion-back-button color="light"></ion-back-button>
+    </ion-buttons>
+    <!-- <div class="rowAlignCenter" style="margin: 15px; margin-bottom: 10px">
+      <ion-icon
+        (click)="goBack()"
+        name="arrow-back"
+        color="whiteColor"
+        style="font-size: 25px"
+      ></ion-icon>
+      <ion-text class="whiteColor22Bold" style="margin-left: 10px">
+        Terms & Conditions
+      </ion-text>
+    </div> -->
+    <ion-title color="light" *ngIf="typeParam == 1">Terms & Conditions</ion-title>
+    <ion-title color="light" *ngIf="typeParam == 2">Privacy Policy</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  
+    <iframe id="myIframe" style="width: 100%;height: 100%;background: #fff;" *ngIf="typeParam == 1" src="https://admin.ekomflix.com/terms_and_conditions/webview"></iframe>
+ 
+    <iframe id="myIframe" style="width: 100%;height: 100%;background: #fff;" *ngIf="typeParam == 2" src="https://admin.ekomflix.com/privacy_policy/webview"></iframe>
+
+</ion-content>

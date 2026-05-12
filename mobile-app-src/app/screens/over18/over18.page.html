@@ -1,0 +1,48 @@
+<ion-header [translucent]="false">
+  <ion-toolbar color="blackColor">
+    <div class="rowAlignCenter" style="margin: 15px; margin-bottom: 10px">
+      <ion-icon
+        (click)="goBack()"
+        name="arrow-back"
+        color="whiteColor"
+        style="font-size: 25px"
+      ></ion-icon>
+      <ion-text class="whiteColor22Bold" style="margin-left: 10px">
+        Over 18
+      </ion-text>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <div class="over18-grid">
+    <div class="over18-grid__item" *ngFor="let item of items; let i = index">
+      <div class="over18-grid__card" (click)="playItem(item)">
+        <app-media-card
+          [src]="item?.poster || item?.thumbnail || item?.banner"
+          [alt]="apiService.getDisplayTitle(item) || 'Over 18 content'"
+          variant="poster"
+          (imageLoad)="imageLoaded[i] = true"
+        ></app-media-card>
+      </div>
+      <div class="media-grid-tile__title media-grid-tile__title--compact">
+        {{ apiService.getDisplayTitle(item) }}
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="!items.length && !isLoading" class="over18-grid__empty">
+    <ion-text class="grayColor16Regular">No 18+ content available.</ion-text>
+  </div>
+
+  <ion-infinite-scroll (ionInfinite)="loadMore($event)" [disabled]="!hasMore">
+    <ion-infinite-scroll-content
+      loadingSpinner="bubbles"
+      loadingText="Loading more data..."
+    ></ion-infinite-scroll-content>
+  </ion-infinite-scroll>
+</ion-content>

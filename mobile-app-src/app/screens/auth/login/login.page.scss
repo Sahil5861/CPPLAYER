@@ -1,0 +1,46 @@
+ion-content::part(background) {
+  background: url("../../../../assets/images/bgImage.png") no-repeat center
+    center / cover;
+  background-color: var(--bodyBackColor);
+}
+
+ion-content::part(background)::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5); /* Black with 50% opacity */
+  z-index: 0;
+}
+
+ion-content::part(background) > * {
+  position: relative;
+  z-index: 1;
+}
+
+.textfield {
+  height: 23px;
+  min-height: 23px;
+  --placeholder-color: var(--grayColor);
+  --placeholder-opacity: 1;
+}
+
+.divider {
+  background-color: var(--grayColor);
+  height: 1px;
+  margin-top: 10px;
+}
+
+.pageStyle {
+  height: 80%;
+  width: 100%;
+  flex-direction: column;
+  justify-content: space-between;
+  display: flex;
+}
+
+.smallButton {
+  border-radius: 5px;
+  margin: 0 10px;
+  padding: 10px;
+  flex: 1;
+}

@@ -1,0 +1,4039 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\AdminPlan;
+use App\Models\AdminSuperAdminPlan;
+use App\Models\Channel;
+use App\Models\Movie;
+use App\Models\AdultMovie;
+use App\Models\KidsChannel;
+use App\Models\KidsShow;
+use App\Models\KidShowsSeason;
+use App\Models\KidshowsEpisode;
+use App\Models\UserWallet;
+
+
+use App\Models\WebSeries;
+use App\Models\WebSeriesSeason;
+use App\Models\WebSeriesEpisode;
+use App\Models\ContentNetwork;
+use App\Models\MovieContentNetwork;
+use App\Models\WebSeriesContentNetwork;
+use App\Models\TvChannel;
+use App\Models\TvShow;
+use App\Models\TvShowEpisode;
+use App\Models\TvShowSeason;
+
+use App\Models\RelChannel;
+use App\Models\RelShow;
+use App\Models\RelshowsEpisode;
+
+use App\Models\SportsCategory;
+use App\Models\SportsTournament;
+use App\Models\TournamentSeason;
+use App\Models\TournamentMatches;
+use App\Models\StageshowPak;
+use App\Models\Laughterhow;
+use App\Models\TvChannelPak;
+use App\Models\TvShowPak;
+use App\Models\TvShowSeasonPak;
+use App\Models\TvShowEpisodePak;
+
+
+use App\Models\MovieLink;
+use App\Models\Genre;
+use App\Models\Slider;
+use App\Models\Userauth;
+use App\Models\ClientUser;
+use App\Models\PackageChannel;
+use App\Models\ResellerAdminPlan;
+use App\Models\ResellerPlan;
+use App\Models\User;
+use App\Models\SadminPlan;
+use App\Models\AppDomainContent;
+
+use App\Models\Language;
+
+use App\Models\UserPlanDetails;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+
+use Illuminate\Support\Facades\Storage;
+use DB;
+
+class AppApiControllerV2 extends Controller
+{
+
+    public function __construct()
+    {
+    	header("Access-Control-Allow-Origin: *");
+        header("Access-Control-Allow-Credentials: true");
+        header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
+        header("Access-Control-Allow-Headers: Referer, Accept, Content-Type, Authorization, X-Requested-With, Api-Key, auth-key, Auth-Key, domain, Domain");
+        header('P3P: CP="CAO PSA OUR"'); // Makes IE to support cookies
+        header("Content-Type: application/json; charset=utf-8");
+
+    }
+
+    public function getallheaders(Illuminate\Http\Request $request)
+    {
+        $headers = $request->header('Authorization');
+        return $headers;
+    }
+
+    public function get_user_id()
+    {
+
+        $headers = getallheaders();
+        // print_r($headers); exit;
+        if ((isset($headers['auth-key']) && $headers['auth-key'] != '') || (isset($headers['Auth-Key']) && $headers['Auth-Key'] != ''))
+        {
+
+            $auth_key = isset($headers['auth-key']) ? $headers['auth-key'] : $headers['Auth-Key'];
+            $userData = Userauth::where('auth_key', '=', $auth_key)->where('status',1)->first();
+
+            if ($userData)
+            {
+                return $userData->user_id;
+            }
+            else
+            {
+                print_r(json_encode(array(
+                    "status" => false,
+                    "msg" => "Invalid authentication. Please login again",
+                    'login' => true
+                )));
+                exit;
+            }
+
+        }
+        else
+        {
+            print_r(json_encode(array(
+                "status" => false,
+                "msg" => 'Auth key not found'
+            )));
+            exit;
+        }
+    }
+
+    public function get_user_pin()
+    {
+
+        $headers = getallheaders();
+        // print_r($headers); exit;
+        if ((isset($headers['auth-key']) && $headers['auth-key'] != '') || (isset($headers['Auth-Key']) && $headers['Auth-Key'] != ''))
+        {
+
+            $auth_key = isset($headers['auth-key']) ? $headers['auth-key'] : $headers['Auth-Key'];
+
+            $userData = Userauth::where('auth_key', '=', $auth_key)->where('status',1)->first();
+
+            if ($userData)
+            {
+                $userId = $userData->user_id;
+                
+                $user = ClientUser::where('id', '=', $userId)->first();
+                if ($user) {
+                    return $user->over18_pin;
+                }
+                else{
+                    print_r(json_encode(array(
+                        "status" => false,
+                        "msg" => 'User Pin Not Found'
+                    )));
+                    exit;
+                }                
+            }
+            else
+            {
+                print_r(json_encode(array(
+                    "status" => false,
+                    "msg" => "Invalid authentication. Please login again",
+                    'login' => true
+                )));
+                exit;
+            }
+
+        }
+        else
+        {
+            print_r(json_encode(array(
+                "status" => false,
+                "msg" => 'Auth key not found for User Pin'
+            )));
+            exit;
+        }
+    }
+
+    function getPermitChannels(){   
+        $headers = getallheaders();           
+        $domain = isset($headers['domain']) ? $headers['domain'] : $headers['Domain'];          
+        $channels =  AppDomainContent::where('domain', $domain)->first()->live_channels;        
+        return $channels;
+    }
+
+    protected function checkDomainPermission($module){
+        $headers = getallheaders();
+        
+        if ((isset($headers['domain']) && $headers['domain'] != '') || (isset($headers['Domain']) && $headers['Domain'] != '')){
+            $domain = isset($headers['domain']) ? $headers['domain'] : $headers['Domain'];  
+                                    
+            if ($module == 'live_channels') {
+
+                return response()->json([
+                    "status" => true,
+                    'channels' => $this->getPermitChannels()
+                ]);
+            }
+            else{
+                return AppDomainContent::where('domain', $domain)->where($module, 1)->exists();
+            }
+
+        }
+        else{
+            return false;
+        }
+
+    }
+
+    function getBrowser(){
+        $browser = array("Navigator"            => "/Navigator(.*)/i",
+                         "Firefox"              => "/Firefox(.*)/i",
+                         "Internet Explorer"    => "/MSIE(.*)/i",
+                         "Google Chrome"        => "/chrome(.*)/i",
+                         "MAXTHON"              => "/MAXTHON(.*)/i",
+                         "Opera"                => "/Opera(.*)/i",
+                         );
+
+        // print_r($browser);exit;
+        $this->info= array();
+        foreach($browser as $key => $value){
+            if(preg_match($value,  request()->userAgent())){
+                $this->info = array_merge($this->info,array("Browser" => $key));
+                $this->info = array_merge($this->info,array(
+                  // "Version" => $this->getVersion($key, $value, $this->agent)
+                  ));
+                break;
+            }else{
+                $this->info = array_merge($this->info,array("Browser" => "UnKnown"));
+                $this->info = array_merge($this->info,array("Version" => "UnKnown"));
+            }
+        }
+        return $this->info['Browser'];
+      }
+
+    
+    
+    
+      public function loginAccessUser($userData, $type, $domain){
+        $browser = $this->getBrowser();
+
+        $ipaddress = '';
+        $ipaddress = $_SERVER['REMOTE_ADDR'];
+        // if (getenv('HTTP_CLIENT_IP')) $ipaddress = getenv('HTTP_CLIENT_IP');
+        // else if (getenv('HTTP_X_FORWARDED_FOR')) $ipaddress = getenv('HTTP_X_FORWARDED_FOR');
+        // else if (getenv('HTTP_X_FORWARDED')) $ipaddress = getenv('HTTP_X_FORWARDED');
+        // else if (getenv('HTTP_FORWARDED_FOR')) $ipaddress = getenv('HTTP_FORWARDED_FOR');
+        // else if (getenv('HTTP_FORWARDED')) $ipaddress = getenv('HTTP_FORWARDED');
+        // else if (getenv('REMOTE_ADDR')) $ipaddress = getenv('REMOTE_ADDR');
+        // else $ipaddress = 'UNKNOWN';
+
+        $json = file_get_contents("http://ipinfo.io/{$ipaddress}");
+        // $json = file_get_contents("http://ip-api.com/json/{$ipaddress}");
+        // http://ip-api.com/json/
+        $details = json_decode($json);
+
+        // return $details;
+        // print_r($details); exit;
+        $auth_key = md5(uniqid() . $userData->id);
+        Userauth::where('user_id',$userData->id)->update(['status'=>0]);
+        $userauth = new Userauth();
+
+        $userauth->auth_key = $auth_key;
+        $userauth->user_id = $userData->id;
+        $userauth->ip_address = $details->ip;
+        $userauth->browser = $browser;
+        $userauth->city = @$details->city;
+        $userauth->country = @$details->country;
+        $userauth->postal = @$details->postal;
+
+        if ($type == 'tv') {
+            $userauth->login_pin = $userData->login_pin;
+            $userauth->mac_address = $userData->mac_address;
+        }
+        elseif ($type == 'app') {
+            $userauth->login_pin = $userData->login_pin_app;
+            $userauth->mac_address = $userData->mac_address_app;
+        }
+
+        $userauth->type = $type;
+
+        $userauth->save();
+
+        $userData['domain_content'] = $this->getDomainData($userData->created_by, $domain);
+
+
+        print_r(json_encode(array(
+            "status" => true,
+            "msg" => "Login Successfully",
+            "result_auth_key" => $auth_key,
+            'data' => $userData,
+            'imageBaseUrl' => 'https://cnwprojects.com/'
+        )));
+        exit;
+
+    }
+
+    public function getDomainData($created_by,$domain){
+        $app_domain_content = AppDomainContent::where('admin_id', $created_by)->where('domain', $domain)->first();
+        
+        if ($app_domain_content) {
+            return $app_domain_content;
+        }
+        else{
+            return [];
+        }
+    }
+
+    protected function updateUserAmount($user_id, $amount, $created_by){
+
+        $data_user = ClientUser::where('id', $user_id)->first();
+
+        $current_amount = $data_user->current_amount;
+        
+        $data_user->current_amount = $current_amount - $amount;
+
+        if ($data_user->save()) {
+            $wallet = new UserWallet();
+
+            $wallet->debit_amount = $user_purchase_price;
+            $wallet->message = "Plan purchased by wallet amount (".$user->email.")";
+            $wallet->credit_amount_by = $created_by;
+            $wallet->save();            
+        }
+
+
+    }
+
+    function login_pin(Request $req) {
+
+        $post = json_decode(file_get_contents('php://input', 'r'));
+
+        if ((isset($post->login_pin) && $post->login_pin != '') && ((isset($post->mac_address) && $post->mac_address != '') && (isset($post->domain) && $post->domain != ''))) 
+        {
+
+            $login_pin = $post->login_pin;
+            $mac_address = $post->mac_address;            
+
+            $data_user = ClientUser::where('login_pin','=',$login_pin)->first();    
+
+            $domain = $post->domain;
+            $created_by = $data_user ? $data_user->created_by : 0;  // id
+            $creater = User::where('id',$created_by)->first();
+
+            if (!$data_user || $data_user == null) {
+                print_r(json_encode([
+                    'status' => false,
+                    'msg' => 'Invalid Login Pin'
+                ]));
+                exit;
+            }
+
+            if ($data_user->mac_address && $mac_address !== $data_user->mac_address) {
+                print_r(json_encode([
+                    'status' => false,
+                    'msg' => 'Login Failed. Mac address mismatched. Contact your Admin'
+                ]));
+                exit;
+            }
+
+            // $app_domain_content = AppDomainContent::where('admin_id', $created_by)->where('domain', $domain)->first();
+
+            $app_domain_content = $this->getDomainData($created_by, $domain);
+
+
+            if (!$app_domain_content) {
+                print_r(json_encode([
+                    "status" => false,
+                    "msg" => "Domain not found or Invalid domain or invalid pin."
+                ]));
+                exit;
+            }
+
+            if ($data_user)
+            {
+                $plans = UserPlanDetails::where(['user_id'=>$data_user->id,'status'=>1])->whereDate('plan_end_date','>=',date('Y-m-d'))->orderBy('id','desc')->get();
+
+                if(count($plans) == 0){
+                    
+                    $is_update = $this->updatePlan($data_user, $creater);
+
+                    if (!$is_update) {
+                        print_r(json_encode(array(
+                            'status' => false,
+                            'msg' => 'You have not active plan. Kindly recharge your account.'
+                        )));
+                        exit;
+                    }
+                }
+                if($data_user->mac_address == '' || $data_user->mac_address == null){
+                    $data_user->fcm_token = $post->token;
+                    $data_user->mac_address = $mac_address;
+                    $data_user->save();
+                    if($data_user->status=='2'){
+                        print_r(json_encode(array(
+                            "status" => false,
+                            "msg" => "Your account is deactivated.",
+                            'otp' => false
+                        )));
+                        exit;
+                    }elseif($data_user->status=='3'){
+                        print_r(json_encode(array(
+                            "status" => false,
+                            "msg" => "Your account blocked by admin.",
+                            'otp' => false
+                        )));
+                        exit;
+                    }else{
+                        $this->loginAccessUser($data_user, 'tv', $domain);
+                    }
+                }else if($data_user->mac_address == $mac_address){
+                    if($data_user->status=='2'){
+                        print_r(json_encode(array(
+                            "status" => false,
+                            "msg" => "Your account is deactivated.",
+                            'otp' => false
+                        )));
+                        exit;
+                    }elseif($data_user->status=='3'){
+                        print_r(json_encode(array(
+                            "status" => false,
+                            "msg" => "Your account blocked by admin.",
+                            'otp' => false
+                        )));
+                        exit;
+                    }else{
+                        $this->loginAccessUser($data_user, 'tv', $domain);
+                    }
+                }else{
+                    print_r(json_encode(array(
+                        "status" => false,
+                        "msg" => "Mac address not matched.",
+                    )));
+                    exit;
+                }
+            }else{
+                print_r(json_encode(array(
+                    "status" => false,
+                    "msg" => "You entered invalid pin."
+                )));
+                exit;
+            }
+
+        }
+        else
+        {
+            print_r(json_encode(array(
+                "status" => false,
+                "msg" => "Please enter login_pin, mac_address, and doamin"
+            )));
+            exit;
+        }
+    }
+
+    protected function updatePlan($data_user, $creater){
+        $last_plan = UserPlanDetails::where(['user_id'=>$data_user->id])->orderBy('id','desc')->first();
+
+        
+        $plan_id = $last_plan ? $last_plan->plan_id : 0;
+
+        $current_user_amount = $data_user->current_amount ?? 0;
+
+        $planDetails = null;
+        
+        if ($creater->role == 2) {
+            $planDetails = AdminPlan::find($plan_id);
+        }
+        else if ($creater->role == 3) {
+            $planDetails = ResellerPlan::find($plan_id);
+        }
+
+        $price = $planDetails->total_price;
+
+        if (($current_user_amount >= $price) && $planDetails) {
+            $plan = new UserPlanDetails();
+            $plan->user_id = $data_user->id;
+            $plan->plan_original_price = $price; // super admin price
+            $plan->plan_validity = $planDetails->plan_validity;
+            $plan->role = ($creater->role == 2 ? 'admin': ($creater->role == 3 ? 'reseller': 'netadmin'));
+
+            $plan->plan_purchase_price = $price;
+            $plan->plan_purchased_by = $creater->role;
+            $plan_end_date=Date('Y-m-d H:i:s', strtotime('+'.$planDetails->plan_validity.' days'));
+            $plan->plan_end_date = $plan_end_date;
+            $plan->status = 1;
+            $plan->save();
+
+            $this->updateUserAmount($data_user->id, $price, $creater->id);
+
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
+
+    function login_pin_app(Request $req) {
+
+        $post = json_decode(file_get_contents('php://input', 'r'));
+
+        if ((isset($post->login_pin_app) && $post->login_pin_app != '') && ((isset($post->mac_address_app) && $post->mac_address_app != '') && (isset($post->domain) && $post->domain != ''))) 
+        {
+
+            $login_pin_app = $post->login_pin_app;
+            $mac_address_app = $post->mac_address_app;
+            // $password = md5($post->password);
+
+            $data_user = ClientUser::where('login_pin_app','=',$login_pin_app)->first();
+
+            $domain = $post->domain;
+            $created_by = $data_user ? $data_user->created_by : 0;  // id
+            $creater = User::where('id',$created_by)->first();
+        
+            if (!$data_user || $data_user == null) {
+                print_r(json_encode([
+                    'status' => false,
+                    'msg' => 'Invalid Login Pin'
+                ]));
+                exit;
+            }
+
+            if ($data_user->mac_address_app && $mac_address_app !== $data_user->mac_address_app) {
+                print_r(json_encode([
+                    'status' => false,
+                    'msg' => 'Login Failed. Mac address mismatched. Contact your Admin'
+                ]));
+                exit;
+            }
+            
+            $domain = $post->domain;
+            $created_by = $data_user->created_by; //admin_id
+
+            $app_domain_content = AppDomainContent::where('admin_id', $created_by)->where('domain', $domain)->first();
+
+            if (!$app_domain_content) {
+                print_r(json_encode([
+                    "status" => false,
+                    "msg" => "Domain not found or Invalid domain or invalid pin."
+                ]));
+                exit;
+            }
+
+
+            if ($data_user)
+            {
+                $plans = UserPlanDetails::where(['user_id'=>$data_user->id,'status'=>1])->whereDate('plan_end_date','>=',date('Y-m-d'))->orderBy('id','desc')->get();
+
+                if(count($plans) == 0){
+
+                    // $last_plan = UserPlanDetails::where(['user_id'=>$data_user->id])->orderBy('id','desc')->first();
+                    // $plan_id = $last_plan ? $last_plan->plan_id : 0;
+
+                    // $current_user_amount = $data_user->current_amount ?? 0;
+
+                    // $plan_details = null;
+
+                    // if ($creater->role == 2) {
+                    //     $planDetails = AdminPlan::find($plan_id);
+                    // }
+                    // else if ($creater->role == 3) {
+                    //     $planDetails = ResellerPlan::find($plan_id);
+                    // }
+
+                    // $price = $planDetails->total_price;
+
+                    // if ($current_user_amount >= $price && $plan_details) {
+                    //     $plan = new UserPlanDetails();
+                    //     $plan->user_id = $data_user->id;
+                    //     $plan->plan_original_price = $price; // super admin price
+                    //     $plan->plan_validity = $planDetails->plan_validity;
+                    //     $plan->role = ($creater->role == 2 ? 'admin': ($creater->role == 3 ? 'reseller': 'netadmin'));
+
+                    //     $plan->plan_purchase_price = $price;
+                    //     $plan->plan_purchased_by = $created_by;
+                    //     $plan_end_date=Date('Y-m-d H:i:s', strtotime('+'.$planDetails->plan_validity.' days'));
+                    //     $plan->plan_end_date = $plan_end_date;
+                    //     $plan->status = 1;
+                    //     $plan->save();
+                    // }
+                    // else{
+                    //     print_r(json_encode(array(
+                    //         'status' => false,
+                    //         'msg' => 'You have not active plan. Kindly recharge your account.s'
+                    //     )));
+                    //     exit;
+                    // }
+
+                    $is_update = $this->updatePlan($data_user, $creater);
+
+                    if (!$is_update) {
+                        print_r(json_encode(array(
+                            'status' => false,
+                            'msg' => 'You have not active plan. Kindly recharge your account.'
+                        )));
+                        exit;
+                    }
+                }
+                if($data_user->mac_address_app == '' || $data_user->mac_address_app == null){
+                    $data_user->fcm_token = $post->token;
+                    $data_user->mac_address_app = $mac_address_app;
+                    $data_user->save();
+                    if($data_user->status=='2'){
+                        print_r(json_encodse(array(
+                            "status" => false,
+                            "msg" => "Your account is deactivated.",
+                            'otp' => false
+                        )));
+                        exit;
+                    }elseif($data_user->status=='3'){
+                        print_r(json_encode(array(
+                            "status" => false,
+                            "msg" => "Your account blocked by admin.",
+                            'otp' => false
+                        )));
+                        exit;
+                    }else{
+                        $this->loginAccessUser($data_user, 'app', $domain);
+                    }
+                }else if($data_user->mac_address_app == $mac_address_app){
+                    if($data_user->status=='2'){
+                        print_r(json_encode(array(
+                            "status" => false,
+                            "msg" => "Your account is deactivated.",
+                            'otp' => false
+                        )));
+                        exit;
+                    }elseif($data_user->status=='3'){
+                        print_r(json_encode(array(
+                            "status" => false,
+                            "msg" => "Your account blocked by admin.",
+                            'otp' => false
+                        )));
+                        exit;
+                    }else{
+                        $this->loginAccessUser($data_user, 'app', $domain);
+                    }
+                }else{
+                    print_r(json_encode(array(
+                        "status" => false,
+                        "msg" => "Mac address not matched.",
+                    )));
+                    exit;
+                }
+            }else{
+                print_r(json_encode(array(
+                    "status" => false,
+                    "msg" => "You entered invalid pin."
+                )));
+                exit;
+            }
+
+        }
+        else
+        {
+            print_r(json_encode(array(
+                "status" => false,
+                "msg" => "Please enter login pin, macAddress , device id and Domain name"
+            )));
+            exit;
+        }
+    }
+
+    public function getActivePlan(){
+        $user_id = $this->get_user_id();
+        $plans = UserPlanDetails::where(['user_id'=>$user_id,'status'=>1])->whereDate('plan_end_date','>=',date('Y-m-d'))->orderBy('id','desc')->get();
+        // $activePlan = [];
+        if($plans){
+            foreach ($plans as $key => $plan) {
+                
+                $admin = User::where('id',$plan->plan_purchased_by)->first();
+                if($plan->plan_id > 9999){
+                    if($admin->role == 2){
+                        $activePlan = AdminPlan::where('id',$plan->plan_id)->where('status',1)->first();
+                    }else{
+                        $activePlan = ResellerPlan::where('id',$plan->plan_id)->where('status',1)->first();
+                    }
+                }else{
+                    $activePlan = SadminPlan::where('id',$plan->plan_id)->where('status',1)->first();
+                }
+                $plan->planDetails = $activePlan;
+            }
+            
+            
+            if(count($plans) > 0){
+                print_r(json_encode(array(
+                    'status' => true,
+                    'message' => 'Active Plan',
+                    'data' => $plans
+                )));
+                exit;
+            }else{
+                print_r(json_encode(array(
+                    'status' => false,
+                    'message' => 'Plan not found.'
+                )));
+                exit;
+            }
+        }else{
+            print_r(json_encode(array(
+                'status' => false,
+                'message' => 'No active plan found.'
+            )));
+            exit;
+        }
+    }
+    
+    public function checkPlan(){
+        $user_id = $this->get_user_id();
+        $plan = UserPlanDetails::where(['user_id'=>$user_id,'status'=>1])->whereDate('plan_end_date','>=',date('Y-m-d'))->orderBy('id','desc')->first();
+        if(isset($plan->id)){
+            print_r(json_encode(array(
+                'status' => true,
+                'plan'=> $plan,
+                'message' => 'Have an active plan.'
+            )));
+            exit;
+        }else{
+            Userauth::where('user_id', $user_id)->update(['status'=> 0]);
+            UserPlanDetails::where('user_id', $user_id)->update(['status'=> 0]);
+            print_r(json_encode(array(
+                'status' => false,
+                'message' => 'No active plan found.'
+            )));
+            exit;
+        }
+
+    }
+
+    public function getChannels(Request $request)
+    {
+
+        $user_id = $this->get_user_id();
+        // $channel = Channel::where('status',1)->whereNull('deleted_at')->get();
+
+        $plans = UserPlanDetails::where(['user_id'=>$user_id,'status'=>1])->whereDate('plan_end_date','>=',date('Y-m-d'))->orderBy('id','desc')->get();
+        $channels = [];
+        if($plans){
+            foreach ($plans as $key => $plan) {
+                
+                $admin = User::where('id',$plan->plan_purchased_by)->first();
+                if($admin->role == 2){
+                    $superAdminPlan = AdminSuperAdminPlan::where('admin_plan_id',$plan->plan_id)->where('status',1)->get();
+                    foreach ($superAdminPlan as $key => $value) {
+                        $channels[] = PackageChannel::select('channels.*')->leftJoin('channels','channels.id','=','package_channels.channel_id')->where('package_channels.plan_id',$value->super_admin_plan_id)->whereNull('channels.deleted_at')->where('channels.status', 1)->orderBy('channels.channel_number','asc')->get();
+                    }
+                }else if($admin->role == 3){
+                    $superAdminPlan = ResellerAdminPlan::select('admin_super_admin_plans.*')->leftJoin('admin_super_admin_plans','admin_super_admin_plans.admin_plan_id','=','reseller_admin_plans.admin_plan_id')->where('reseller_admin_plans.reseller_plan_id',$plan->plan_id)->get();
+                    foreach ($superAdminPlan as $key => $value) {
+                        $channels[] = PackageChannel::select('channels.*')->leftJoin('channels','channels.id','=','package_channels.channel_id')->where('package_channels.plan_id',$value->super_admin_plan_id)->whereNull('channels.deleted_at')->where('channels.status', 1)->orderBy('channels.channel_number','asc')->get();
+                    }
+                }else if($admin->role == 6){
+                    $channels[] = DB::select("SELECT c.id, c.channel_number, c.channel_name, c.channel_logo,c.channel_bg,c.channel_language,c.channel_index,c.position_locked,c.status,c.channel_description,c.view_count,c.created_at, nc.link as channel_link FROM netadmin_channels nc LEFT JOIN channels c ON c.id = nc.channel_id WHERE nc.plan_id = ".$plan->plan_id." AND nc.link<>'' AND nc.status =1 AND c.deleted_at IS NULL ORDER BY c.channel_number ASC");
+                }
+            }
+            $allChannels = [];
+            foreach ($channels as $key => $chan) {
+                // code...
+                foreach ($chan as $key => $ch) {
+                    // code...
+                    $allChannels[] = $ch;
+                }
+            }
+            if($allChannels){
+                print_r(json_encode(array(
+                    'status' => true,
+                    'message' => 'All Channel',
+                    'data' => $allChannels
+                )));
+                exit;
+            }else{
+                print_r(json_encode(array(
+                    'status' => false,
+                    'message' => 'Channel not found.'
+                )));
+                exit;
+            }
+        }else{
+            print_r(json_encode(array(
+                'status' => false,
+                'message' => 'No active plan found.'
+            )));
+            exit;
+        }
+
+        // print_r(json_encode(array(
+        //     'status' => true,
+        //     'message' => 'All channels.',
+        //     'data' =>$channel
+        // )));
+        // exit;
+    }
+
+    public function getFeaturedLiveTV(Request $request)
+    {
+
+        // $user_id = $this->get_user_id();
+        // $channel = Channel::where('status',1)->orderBy('channel_number','asc')->whereNull('deleted_at')->get();
+        // print_r(json_encode(array(
+        //     'status' => true,
+        //     'message' => 'All channels.',
+        //     'data' =>$channel
+        // )));
+        // exit;
+
+        $user_id = $this->get_user_id();
+        $channels = Channel::select('id',
+                'channel_number',
+                'channel_name as name',
+                'channel_description  as description',
+                'channel_name as name',
+                'channel_logo as banner',
+                'channel_link as url',
+                'stream_type',
+                'genres',
+                'status')->where('status',1)->whereNull('deleted_at')->orderBy('channel_number','asc');
+                
+        if(isset($_GET['records']) && $_GET['records'] > 0){
+            $channels = $channels->limit($_GET['records'])->get();
+        }else{
+            $channels = $channels->get();
+        }
+                
+        $groupedByGenres = [];
+
+        // Loop through each channel
+        foreach ($channels as $channel) {
+            $genreList = explode(',', $channel->genres); // Split the genres string
+
+            foreach ($genreList as $genre) {
+                $genre = trim($genre); // Trim spaces
+                if (!isset($groupedByGenres[$genre])) {
+                    $groupedByGenres[$genre] = [];
+                }
+                $groupedByGenres[$genre][] = $channel;
+            }
+        }
+
+        // $plans = UserPlanDetails::where(['user_id'=>$user_id,'status'=>1])->whereDate('plan_end_date','>=',date('Y-m-d'))->orderBy('id','desc')->get();
+        // $channels = [];
+        // if($plans){
+        //     foreach ($plans as $key => $plan) {
+                
+        //         $admin = User::where('id',$plan->plan_purchased_by)->first();
+        //         if($admin->role == 2){
+        //             $superAdminPlan = AdminSuperAdminPlan::where('admin_plan_id',$plan->plan_id)->where('status',1)->get();
+        //             foreach ($superAdminPlan as $key => $value) {
+        //                 $channels[] = PackageChannel::select('id',
+        //         'channel_number',
+        //         'channel_name as name',
+        //         'channel_description  as description',
+        //         'channel_name as name',
+        //         'channel_logo as banner',
+        //         'channel_link as url',
+        //         'status')->leftJoin('channels','channels.id','=','package_channels.channel_id')->where('package_channels.plan_id',$value->super_admin_plan_id)->whereNull('channels.deleted_at')->orderBy('channels.channel_number','asc')->get();
+        //             }
+        //         }else if($admin->role == 3){
+        //             $superAdminPlan = ResellerAdminPlan::select('admin_super_admin_plans.*')->leftJoin('admin_super_admin_plans','admin_super_admin_plans.admin_plan_id','=','reseller_admin_plans.admin_plan_id')->where('reseller_admin_plans.reseller_plan_id',$plan->plan_id)->get();
+        //             foreach ($superAdminPlan as $key => $value) {
+        //                 $channels[] = PackageChannel::select('id',
+        //         'channel_number',
+        //         'channel_name as name',
+        //         'channel_description  as description',
+        //         'channel_name as name',
+        //         'channel_logo as banner',
+        //         'channel_link as url',
+        //         'status')->leftJoin('channels','channels.id','=','package_channels.channel_id')->where('package_channels.plan_id',$value->super_admin_plan_id)->whereNull('channels.deleted_at')->orderBy('channels.channel_number','asc')->get();
+        //             }
+        //         }else if($admin->role == 6){
+        //             $channels[] = DB::select("SELECT c.id, c.channel_number, c.channel_name  as name, c.channel_logo as banner ,c.channel_bg,c.channel_language,c.channel_index,c.position_locked,c.channel_description as description,c.view_count,c.created_at, nc.link as channel_link as url FROM netadmin_channels nc LEFT JOIN channels c ON c.id = nc.channel_id WHERE nc.plan_id = ".$plan->plan_id." AND nc.link<>'' AND nc.status =1 AND c.deleted_at IS NULL ORDER BY c.channel_number ASC");
+        //         }
+        //     }
+        //     $allChannels = [];
+        //     foreach ($channels as $key => $chan) {
+        //         // code...
+        //         foreach ($chan as $key => $ch) {
+        //             // code...
+        //             $allChannels[] = $ch;
+        //         }
+        //     }
+        //     if($allChannels){
+        //         print_r(json_encode(array(
+        //             'status' => true,
+        //             'message' => 'All Channel',
+        //             'data' => $allChannels
+        //         )));
+        //         exit;
+        //     }else{
+        //         print_r(json_encode(array(
+        //             'status' => false,
+        //             'message' => 'Channel not found.'
+        //         )));
+        //         exit;
+        //     }
+        // }else{
+        //     print_r(json_encode(array(
+        //         'status' => false,
+        //         'message' => 'No active plan found.'
+        //     )));
+        //     exit;
+        // }
+        print_r(json_encode($groupedByGenres));
+        // print_r(json_encode(array(
+        //     'status' => true,
+        //     'message' => 'All channels.',
+        //     'data' =>$channel
+        // )));
+        exit;
+    }
+
+    public function getSlider(Request $request){
+        $user_id = $this->get_user_id();
+        $slider = Slider::where('status',1)->whereNull('deleted_at')->get();
+        // print_r(json_encode(array(
+        //     'status' => true,
+        //     'message' => 'All sliders.',
+        //     'data' =>$slider
+        // )));
+        print_r(json_encode($slider));
+        exit;
+    }
+
+    public function getCustomImageSlider(Request $request){
+        $user_id = $this->get_user_id();
+        $slider = Slider::where('status',1)->whereNull('deleted_at')->get();
+        // print_r(json_encode(array(
+        //     'status' => true,
+        //     'message' => 'All sliders.',
+        //     'data' =>$slider
+        // )));
+        print_r(json_encode($slider));
+        exit;
+    }
+
+
+    public function pages(){
+        $pages = \DB::table('pages')->where('id',1)->first();
+        if($pages){
+            print_r(json_encode(array(
+                'status' => true,
+                'pages' => $pages
+            )));
+            exit;
+        }else{
+            print_r(json_encode(array(
+                'status' => false,
+                'msg' =>  'something went wrong.'
+            )));
+            exit;
+        }
+    }
+
+    public function getChannelsWithGenre(Request $request){
+
+        $user_id = $this->get_user_id();
+        $plans = UserPlanDetails::where(['user_id'=>$user_id,'status'=>1])->whereDate('plan_end_date','>=',date('Y-m-d'))->orderBy('id','desc')->get();
+        // print_r($plans); exit();
+        $channel = [];
+        $channels = [];
+        if(count($plans) > 0){
+            $channelIds = [];
+            foreach ($plans as $key => $plan) {
+                $admin = User::where('id',$plan->plan_purchased_by)->first();
+                if($plan->plan_id > 9999){
+               
+                    if($admin->role == 2){
+                        $superAdminPlan = AdminSuperAdminPlan::where('admin_plan_id',$plan->plan_id)->where('status',1)->get();
+                        foreach ($superAdminPlan as $key => $value) {
+                            $channels[] = PackageChannel::select('channels.*')->leftJoin('channels','channels.id','=','package_channels.channel_id')->where('package_channels.plan_id',$value->super_admin_plan_id)->whereNull('channels.deleted_at')->orderBy('channels.channel_number','asc')->get();
+
+                        }
+                        
+                        foreach ($channels as $key1 => $_channel) {
+                            foreach ($_channel as $key => $ch) {
+                                // code...
+                                $channelIds[] = $ch->id;
+                            }
+                            
+                        }
+                        // print_r(json_encode($channelIds));
+                        
+                    }else{
+                        $superAdminPlan = ResellerAdminPlan::select('admin_super_admin_plans.*')->leftJoin('admin_super_admin_plans','admin_super_admin_plans.admin_plan_id','=','reseller_admin_plans.admin_plan_id')->where('reseller_admin_plans.reseller_plan_id',$plan->plan_id)->get();
+                        foreach ($superAdminPlan as $key => $value) {
+                            $channels[] = PackageChannel::select('channels.*')->leftJoin('channels','channels.id','=','package_channels.channel_id')->where('package_channels.plan_id',$value->super_admin_plan_id)->whereNull('channels.deleted_at')->orderBy('channels.channel_number','asc')->get();
+                        }
+                        
+                        foreach ($channels as $key1 => $_channel) {
+                            foreach ($_channel as $key => $ch) {
+                                // code...
+                                $channelIds[] = $ch->id;
+                            }
+                        }
+                        // print_r(json_encode($channelIds));
+                        
+                    }
+                }else{
+                    if($admin->role == 6){
+                        $netadmin = $admin->role;
+                        $channels[] = DB::select("SELECT c.id, c.channel_number, c.channel_name, c.channel_logo,c.channel_bg,c.channel_language,c.channel_index,c.position_locked,c.channel_description,c.view_count,c.created_at, nc.link as channel_link FROM netadmin_channels nc LEFT JOIN channels c ON c.id = nc.channel_id WHERE nc.plan_id = ".$plan->plan_id." AND nc.link<>'' AND nc.status =1 AND c.deleted_at IS NULL ORDER BY c.channel_number ASC");
+                    }else{
+                        $channels[] = PackageChannel::select('channels.*')->leftJoin('channels','channels.id','=','package_channels.channel_id')->where('package_channels.plan_id',$plan->plan_id)->whereNull('channels.deleted_at')->orderBy('channels.channel_number','asc')->get();
+                    }
+
+                    
+                    
+                    foreach ($channels as $key1 => $_channel) {
+                        foreach ($_channel as $key => $ch) {
+                            // code...
+                            $channelIds[] = $ch->id;
+                        }
+                        
+                    }
+                }
+            }
+
+            // if(isset($netadmin)){
+            //     $genre = Genre::with(['netadminchannels' => function($query) use ($channelIds)
+            //     {
+            //         $query->whereIn('channels.id', $channelIds);
+
+            //     }])->where('status',1)->get();
+            //     print_r(json_encode($genre)); exit;    
+            // }
+
+            // $genre = Genre::with(['channels' => function($query) use ($channelIds)
+            // {
+            //     $query->whereIn('channels.id', $channelIds);
+
+            // }])->where('status',1)->get();
+
+            // foreach ($genre as $key => $gen) {
+            //     if(count($gen->channels) > 0){
+            //         $channel[] = $gen;
+            //     }
+            // }
+
+
+            if(isset($netadmin)){
+                
+                $genre = Genre::with(['channels' => function($query) use ($channelIds)
+                {
+                    $query->whereIn('channels.id', $channelIds);
+    
+                }])->where('status',1)->orderBy('index','asc')->get();
+
+                foreach ($genre as $key => $gen) {
+                    if(count($gen->channels) > 0){
+                        foreach ($gen->channels as $key => $___channel) {
+                            $d = DB::table('netadmin_channels')->where(['channel_id'=>$___channel->id,'user_id'=>$plan->plan_purchased_by])->first();
+                            if($d){
+                                $___channel->channel_link = $d->link;
+                            }
+                        }
+
+                        $channel[] = $gen;
+                    }
+                }
+
+                
+                // print_r(json_encode($genre)); exit;    
+            }else{
+
+                $genre = Genre::with(['channels' => function($query) use ($channelIds)
+                {
+                    $query->whereIn('channels.id', $channelIds);
+    
+                }])->where('status',1)->orderBy('index','asc')->get();
+
+                foreach ($genre as $key => $gen) {
+                    if(count($gen->channels) > 0){
+                        $channel[] = $gen;
+                    }
+                }
+            } 
+            $plans = UserPlanDetails::select(\DB::raw('UNIX_TIMESTAMP(plan_end_date) as plan_end_date'),'plan_id')->where(['user_id'=>$user_id,'status'=>1])->whereDate('plan_end_date','>=',date('Y-m-d'))->orderBy('id','desc')->get();
+            
+            print_r(json_encode(array(
+                'status' => true,
+                'message' => 'All channels with genre.',
+                'data' => $channel,
+                'plans'=>$plans
+            )));
+            exit;
+        
+        }else{
+            print_r(json_encode(array(
+                'status' => false,
+                'message' => 'No active plan found.'
+            )));
+            exit;
+        }
+    }
+
+    public function getChannelsWithGenreNew(Request $request){
+        $user_id = $this->get_user_id();
+        $plan = UserPlanDetails::where(['user_id'=>$user_id,'status'=>1])->whereDate('plan_end_date','>=',date('Y-m-d'))->orderBy('id','desc')->first();
+        // print_r($plan); exit();
+        $channel = [];
+        $channels = [];
+        if($plan){
+            $admin = User::where('id',$plan->plan_purchased_by)->first();
+
+            if($admin->role == 2){
+                $superAdminPlan = AdminSuperAdminPlan::where('admin_plan_id',$plan->plan_id)->where('status',1)->get();
+                foreach ($superAdminPlan as $key => $value) {
+                    $channels[] = PackageChannel::select('channels.*')->leftJoin('channels','channels.id','=','package_channels.channel_id')->where('package_channels.plan_id',$value->super_admin_plan_id)->whereNull('channels.deleted_at')->orderBy('channels.channel_number','asc')->get();
+
+                }
+                $channelIds = [];
+                foreach ($channels as $key1 => $_channel) {
+                     foreach ($_channel as $key => $ch) {
+                        // code...
+                        $channelIds[] = $ch->id;
+                    }
+                }
+                // print_r(json_encode($channelIds));
+                $genre = Genre::with(['channels' => function($query) use ($channelIds)
+                    {
+                        $query->whereIn('channels.id', $channelIds);
+
+                    }])->where('status',1)->get();
+                
+                foreach ($genre as $key => $gen) {
+                    if(count($gen->channels) > 0){
+                        $channel[] = $gen;
+                    }
+                    // code...
+                }
+            }else{
+                $superAdminPlan = ResellerAdminPlan::select('admin_super_admin_plans.*')->leftJoin('admin_super_admin_plans','admin_super_admin_plans.admin_plan_id','=','reseller_admin_plans.admin_plan_id')->where('reseller_admin_plans.reseller_plan_id',$plan->plan_id)->get();
+                foreach ($superAdminPlan as $key => $value) {
+                    $channels[] = PackageChannel::select('channels.*')->leftJoin('channels','channels.id','=','package_channels.channel_id')->where('package_channels.plan_id',$value->super_admin_plan_id)->whereNull('channels.deleted_at')->orderBy('channels.channel_number','asc')->get();
+                }
+                $channelIds = [];
+                foreach ($channels as $key1 => $_channel) {
+                     foreach ($_channel as $key => $ch) {
+                        // code...
+                        $channelIds[] = $ch->id;
+                    }
+                }
+                // print_r(json_encode($channelIds));
+                $genre = Genre::with(['channels' => function($query) use ($channelIds)
+                    {
+                        $query->whereIn('channels.id', $channelIds);
+
+                    }])->where('status',1)->get();
+                
+                foreach ($genre as $key => $gen) {
+                    if(count($gen->channels) > 0){
+                        $channel[] = $gen;
+                    }
+                    // code...
+                }
+            }
+            
+            $plans = UserPlanDetails::select(\DB::raw('UNIX_TIMESTAMP(plan_end_date) as plan_end_date'),'plan_id')->where(['user_id'=>$user_id,'status'=>1])->whereDate('plan_end_date','>=',date('Y-m-d'))->orderBy('id','desc')->get();
+            
+            print_r(json_encode(array(
+                'status' => true,
+                'message' => 'All channels with genre.',
+                'data' => $channel,
+                'plans'=>$plans
+            )));
+            exit;
+        
+        }else{
+            print_r(json_encode(array(
+                'status' => false,
+                'message' => 'No active plan found.'
+            )));
+            exit;
+        }
+    }
+
+    public function getChannelsWithGenrePopular(Request $request){
+        // code...
+        $user_id = $this->get_user_id();
+        $plans = UserPlanDetails::where(['user_id'=>$user_id,'status'=>1])->whereDate('plan_end_date','>=',date('Y-m-d'))->orderBy('id','desc')->get();
+        // print_r($plan); exit();
+        $channel = [];
+        $channels = [];
+        if(count($plans) > 0){
+            $channelIds = [];
+            foreach ($plans as $key => $plan) {
+                if($plan->plan_id > 9999){
+
+                    $admin = User::where('id',$plan->plan_purchased_by)->first();
+
+                    if($admin->role == 2){
+                        $superAdminPlan = AdminSuperAdminPlan::where('admin_plan_id',$plan->plan_id)->where('status',1)->get();
+                        foreach ($superAdminPlan as $key => $value) {
+                            $channels[] = PackageChannel::select('channels.*')->leftJoin('channels','channels.id','=','package_channels.channel_id')->where('package_channels.plan_id',$value->super_admin_plan_id)->whereNull('channels.deleted_at')->orderBy('channels.channel_number','asc')->get();
+
+                        }
+                        
+                        foreach ($channels as $key1 => $_channel) {
+                            foreach ($_channel as $key => $ch) {
+                                // code...
+                                $channelIds[] = $ch->id;
+                            }
+                            
+                        }
+                        // print_r(json_encode($channelIds));
+                        
+                    }else{
+                        $superAdminPlan = ResellerAdminPlan::select('admin_super_admin_plans.*')->leftJoin('admin_super_admin_plans','admin_super_admin_plans.admin_plan_id','=','reseller_admin_plans.admin_plan_id')->where('reseller_admin_plans.reseller_plan_id',$plan->plan_id)->get();
+                        foreach ($superAdminPlan as $key => $value) {
+                            $channels[] = PackageChannel::select('channels.*')->leftJoin('channels','channels.id','=','package_channels.channel_id')->where('package_channels.plan_id',$value->super_admin_plan_id)->whereNull('channels.deleted_at')->orderBy('channels.channel_number','asc')->get();
+                        }
+                        
+                        foreach ($channels as $key1 => $_channel) {
+                            foreach ($_channel as $key => $ch) {
+                                // code...
+                                $channelIds[] = $ch->id;
+                            }
+                        }
+                        // print_r(json_encode($channelIds));
+                        
+                    }
+                }else{
+                        // $channels[] = PackageChannel::select('channels.*')->leftJoin('channels','channels.id','=','package_channels.channel_id')->where('package_channels.plan_id',$plan->plan_id)->whereNull('channels.deleted_at')->orderBy('channels.channel_number','asc')->get();
+                    if($admin->role == 6){
+                        $netadmin = $admin->role;
+                        $channels[] = DB::select("SELECT c.id, c.channel_number, c.channel_name, c.channel_logo,c.channel_bg,c.channel_language,c.channel_index,c.position_locked,c.channel_description,c.view_count,c.created_at, nc.link as channel_link FROM netadmin_channels nc LEFT JOIN channels c ON c.id = nc.channel_id WHERE nc.plan_id = ".$plan->plan_id." AND nc.link<>'' AND nc.status =1 AND c.deleted_at IS NULL ORDER BY c.channel_number ASC");
+                    }else{
+                        $channels[] = PackageChannel::select('channels.*')->leftJoin('channels','channels.id','=','package_channels.channel_id')->where('package_channels.plan_id',$plan->plan_id)->whereNull('channels.deleted_at')->orderBy('channels.channel_number','asc')->get();
+                    }
+                    
+                    
+                    foreach ($channels as $key1 => $_channel) {
+                        foreach ($_channel as $key => $ch) {
+                            // code...
+                            $channelIds[] = $ch->id;
+                        }
+                        
+                    }
+                }
+            }
+
+            $genre = Genre::with(['channelspopular' => function($query) use ($channelIds)
+            {
+                $query->whereIn('channels.id', $channelIds);
+
+            }])->where('status',1)->orderBy('index','asc')->get();
+        
+            foreach ($genre as $key => $gen) {
+                if(count($gen->channels) > 0){
+                    $channel[] = $gen;
+                }
+                // code...
+            }
+
+            
+            $plans = UserPlanDetails::select(\DB::raw('UNIX_TIMESTAMP(plan_end_date) as plan_end_date'),'plan_id')->where(['user_id'=>$user_id,'status'=>1])->whereDate('plan_end_date','>=',date('Y-m-d'))->orderBy('id','desc')->get();
+            
+            print_r(json_encode(array(
+                'status' => true,
+                'message' => 'All channels with genre.',
+                'data' => $channel,
+                'plans'=>$plans
+            )));
+            exit;
+        
+        }else{
+            print_r(json_encode(array(
+                'status' => false,
+                'message' => 'No active plan found.'
+            )));
+            exit;
+        }
+    }
+
+
+
+    public function getGenreChannels(Request $request){
+        // code...
+        $user_id = $this->get_user_id();
+        $post = json_decode(file_get_contents('php://input', 'r'));
+        $channel = Genre::where('status',1)->where('id',$post->genre_id)->with('channels')->orderBy('index','asc')->get();
+        print_r(json_encode(array(
+            'status' => true,
+            'message' => 'All channels with genre.',
+            'data' =>$channel
+        )));
+        exit;
+    }
+
+    public function uploadProfile(){
+        $post = json_decode(file_get_contents('php://input', 'r'));
+        $user_id = $this->get_user_id();
+        if(isset($post->image) && $post->image!=''){
+            $user = ClientUser::where('id',$user_id)->first();
+            // $imageName = time().'.jpg';
+            $folderName = '/images/';
+            $image_parts = explode(";base64,", $post->image);
+            $image_type_aux = explode("image/", $image_parts[0]);
+            $image_type = $image_type_aux[1];
+            $image_base64 = base64_decode($image_parts[1]);
+
+            $imageName = uniqid() . time().'.'.$image_type;
+            $destinationPath = $folderName.$imageName;
+            $success = file_put_contents(public_path().$destinationPath, $image_base64);
+            // $success = Storage::disk('s3')->putFileAs('images/' . $imageName, public_path().$destinationPath, ''); // old : $file
+            // @unlink(public_path().$destinationPath);
+            $user->profile_pic = $destinationPath;
+            if($user->save()){
+                print_r(json_encode(array(
+                    'status' => true,
+                    'path' => $destinationPath,
+                    'message' => 'profile pic uploaded successfully.'
+                )));
+                exit;
+            }else{
+                print_r(json_encode(array(
+                    'status' => false,
+                    'message' => 'Something went wrong.'
+                )));
+                exit;
+            }
+        }else{
+            print_r(json_encode(array(
+                'status' => false,
+                'message' => 'All field are required.'
+            )));
+            exit;
+        }
+    }
+
+    public function updateProfile(){
+        $post = json_decode(file_get_contents('php://input', 'r'));
+        $user_id = $this->get_user_id();
+        if(isset($post->name) && $post->name!='' && isset($post->email) && $post->email!='' && isset($post->mobile) && $post->mobile!=''){
+            $user = ClientUser::where('id',$user_id)->first();
+
+            $user->email = $post->email;
+            $user->mobile = $post->mobile;
+            $user->name = $post->name;
+            if($user->save()){
+                print_r(json_encode(array(
+                    'status' => true,
+
+                    'message' => 'profile uploaded successfully.'
+                )));
+                exit;
+            }else{
+                print_r(json_encode(array(
+                    'status' => false,
+                    'message' => 'Something went wrong.'
+                )));
+                exit;
+            }
+        }else{
+            print_r(json_encode(array(
+                'status' => false,
+                'message' => 'All field are required.'
+            )));
+            exit;
+        }
+    }
+
+
+    // new 11 june
+
+    public function getAllMovies(Request $request){
+        // $user_id = $this->get_user_id();
+
+
+        // $is_valid = $this->checkDomainPermission('movies');
+
+        // if (!$is_valid ) {
+        //     print_r(json_encode([
+        //         'status' => false,
+        //         'message' => 'You do not have permission to access this'
+        //     ]));
+        //     exit;
+        // }
+
+
+        $post = json_decode(file_get_contents('php://input', 'r'));
+        $query = Movie::where('status', 1)
+        ->where('is_recent', 1)
+        ->whereNull('deleted_at')
+        ->orderBy('created_at', 'desc');
+
+        if (isset($_GET['page']) && is_numeric($_GET['page'])) {
+            // echo 'page set'; exit;
+            $page = (int) $_GET['page'];
+            $limit = isset($_GET['records']) && is_numeric($_GET['records']) ? (int) $_GET['records'] : 10;
+    
+            $movies = $query->paginate($limit, ['*'], 'page', $page);
+
+            print_r(json_encode($movies->items()));
+            exit;
+            // print_r(json_encode($movies));
+        } else {
+
+            if (isset($_GET['records']) && $_GET['records'] > 0) {
+                $movies = $query->limit($_GET['records'])->get();
+            } else {
+                $movies = $query->get();
+            }
+            print_r(json_encode($movies));
+            exit;
+        }
+
+    }
+
+    public function getAllWebSeries(Request $request){
+        $user_id = $this->get_user_id();
+        $post = json_decode(file_get_contents('php://input', 'r'));
+
+        $is_valid = $this->checkDomainPermission('webseries');
+        if (!$is_valid) {
+            print_r(json_encode([
+                'status' => false,
+                'message' => 'You do not have permission to access this'
+            ]));
+            exit;
+        }
+
+        $query = WebSeries::where('status', 1)->where('deleted_at', null)
+        ->orderBy('created_at', 'desc')
+        ->with('networks')->with('sliders');
+
+        if (isset($_GET['page']) && is_numeric($_GET['page'])) {
+            $page = (int) $_GET['page'];
+            $limit = isset($_GET['records']) && is_numeric($_GET['records']) ? (int) $_GET['records'] : 10;
+
+            $sereis = $query->paginate($limit, ['*'], 'page', $page);
+
+            print_r(json_encode($sereis->items()));
+        }
+        else{
+
+            if(isset($_GET['records']) && $_GET['records'] > 0){
+                $series = $query->limit($_GET['records'])->get();
+            }else{
+                $series = $query->get();
+            }
+    
+            print_r(json_encode($series));
+            exit;
+        }
+    }
+
+    public function getSeasons(Request $request, $id){
+        $user_id = $this->get_user_id();
+        $post = json_decode(file_get_contents('php://input', 'r'));
+
+        $is_valid = $this->checkDomainPermission('webseries');
+        if (!$is_valid) {
+            print_r(json_encode([
+                'status' => false,
+                'message' => 'You do not have permission to access this'
+            ]));
+            exit;
+        }
+
+        $seasons = WebSeriesSeason::where('web_series_id', $id)->where('status',1)->whereNull('deleted_at');
+
+        if (isset($_GET['page']) && is_numeric($_GET['page'])) {
+            $page = (int) $_GET['page'];
+            $limit = isset($_GET['records']) && is_numeric($_GET['records']) ? (int) $_GET['records'] : 10;
+
+            $seasons = $seasons->paginate($limit, ['*'], 'page', $page);
+
+            if (!$seasons->items()) {
+                print_r(json_encode([]));
+                exit;
+            }
+
+            print_r(json_encode($seasons->items()));
+        }
+        else{
+            if(isset($_GET['records']) && $_GET['records'] > 0){
+                $seasons = $seasons->limit($_GET['records'])->get();
+            }
+            else{
+                $seasons = $seasons->get();
+            }
+            if (!$seasons) {
+                print_r(json_encode([]));
+                exit;
+            }
+            print_r(json_encode($seasons));            
+        }        
+
+        exit;
+    }
+
+    public function getEpisodes(Request $request, $id, $type=0){
+        $user_id = $this->get_user_id();
+        $post = json_decode(file_get_contents('php://input', 'r'));
+
+        $is_valid = $this->checkDomainPermission('webseries');
+        if (!$is_valid) {
+            print_r(json_encode([
+                'status' => false,
+                'message' => 'You do not have permission to access this'
+            ]));
+            exit;
+        }
+
+        $episodes = WebSeriesEpisode::where('season_id', $id)->where('status',1)->whereNull('deleted_at');
+
+        if (isset($_GET['page']) && is_numeric($_GET['page'])) {
+            $page = (int) $_GET['page'];
+            $limit = isset($_GET['records']) && is_numeric($_GET['records']) ? (int) $_GET['records'] : 10;
+
+            $episodes = $episodes->paginate($limit, ['*'], 'page', $page);
+            // echo 'Page Set'; exit;
+
+            if (!$episodes->items()) {
+                print_r(json_encode([]));
+                exit;
+            }
+
+            print_r(json_encode($episodes->items()));
+        }
+        else{
+            if(isset($_GET['records']) && $_GET['records'] > 0){
+                $episodes = $episodes->limit($_GET['records'])->get();
+            }
+            else{
+                $episodes = $episodes->get();
+            }
+
+            if (!$episodes) {
+                print_r(json_encode([]));
+                exit;
+            }
+            print_r(json_encode($episodes));            
+        }        
+    }
+
+    public function getWebSeriesDetails(Request $request, $webseries_id){
+        $user_id = $this->get_user_id();
+        $post = json_decode(file_get_contents('php://input', 'r'));
+
+        $is_valid = $this->checkDomainPermission('webseries');
+        if (!$is_valid) {
+            print_r(json_encode([
+                'status' => false,
+                'message' => 'You do not have permission to access this'
+            ]));
+            exit;
+        }
+
+        $webseries = WebSeries::where('id', $webseries_id)
+                    ->where('status', 1)->where('deleted_at', null)
+                    ->with('networks')                    
+                    ->first();
+
+        if ($webseries) {            
+            $seasons = WebSeriesSeason::where('web_series_id', $webseries->id)->orderBy('season_order')->get();
+            
+            if (count($seasons) > 0) {                
+                $web_series_seasons = [];
+                foreach ($seasons as $key => $season) {
+                    $web_series_seasons[] = $season;
+                    $episodes = WebSeriesEpisode::where('season_id', $season->id)->orderBy('episoade_order')->get();                                
+
+                    if (count($episodes) > 0) {                        
+                        $web_episodes = [];
+                        foreach ($episodes as $key => $episode) {
+                            $web_episodes[] = $episode;
+                        }
+                        $season['episodes'] = $web_episodes;
+                    }
+                }   
+                // $webseries_sliders = \App\Models\WebseriesSlider::where('webseries_id', $webseries_id)->whereNull('deleted_at')
+                // ->get(); 
+                $webseries['seasons'] = $web_series_seasons;
+                // $webseries['sliders'] = $webseries_sliders;
+            }
+
+            print_r(json_encode($webseries));
+        }
+        else{
+            print_r(json_encode([]));
+        }
+        
+
+        
+        // return response()->json([
+        //     'webseries' => $webseries,
+        // ]);
+
+    }
+
+    // public function getWebSeriesDetails(Request $request, $webseries_id){
+    //     $webseries = WebSeries::with([
+    //         'networks',
+    //         'seasons.episodes' => function ($query) {
+    //             $query->orderBy('episoade_order');
+    //         }
+    //     ])
+    //     ->where('id', $webseries_id)
+    //     ->where('status', 1)
+    //     ->whereNull('deleted_at')
+    //     ->first();
+
+    //     if ($webseries) {
+    //         // Sort seasons if needed
+    //         $webseries->seasons = $webseries->seasons->sortBy('season_order')->values();
+
+    //         return response()->json($webseries);
+    //     }
+
+    //     return response()->json([], 404);
+    // }
+
+
+
+
+    public function getMoviePlayLinks(Request $request, $id, $type=0){
+        $user_id = $this->get_user_id();
+        $post = json_decode(file_get_contents('php://input', 'r'));
+
+        $movieLinks = MovieLink::where('movie_id', $id)->get();
+
+        if ($movieLinks) {
+            // print_r(json_encode(array(
+            //     'status' => true,
+            //     'message' => 'All Movie Links of movie id : '.$id.' .',
+            //     'data' =>$movieLinks
+            // )));    
+            print_r(json_encode($movieLinks));
+        }
+        else{
+            // print_r(json_encode(array(
+            //     'status' => false,
+            //     'message' => 'No Data found',
+            //     'data' => []
+            // )));
+            print_r(json_encode([]));
+        }
+        exit;
+    }
+
+    // public function getNetworks(Request $request){
+    //     $user_id = $this->get_user_id();
+    //     $post = json_decode(file_get_contents('php://input', 'r'));
+
+        
+    //     $movie_networks = MovieContentNetwork::distinct()->pluck('network_id')->toArray();
+    //     $series_networks = WebSeriesContentNetwork::distinct()->pluck('network_id')->toArray();
+        
+    //     $array_merge = array_merge($movie_networks, $series_networks);
+        
+    //     $networks = ContentNetwork::with('sliders')->where('deleted_at', null)  
+    //                 ->whereIn('id', $array_merge)
+    //                 ->where('status', 1)
+    //                 ->orderBy('networks_order', 'asc')
+    //                 ->get();
+
+    //     if ($networks) {            
+    //         print_r(json_encode($networks));
+    //     }
+    //     else{            
+    //         print_r(json_encode([]));
+    //     }
+    //     exit;
+    // }
+
+
+    public function getNetworks(Request $request){
+        $user_id = $this->get_user_id();
+        $post = json_decode(file_get_contents('php://input', 'r'));
+
+        $data_for = $post->data_for ?? null;
+
+        $movie_networks = [];
+        $series_networks = [];
+        
+        if ($data_for == 'movies') {            
+            $movie_networks = MovieContentNetwork::distinct()->pluck('network_id')->toArray();
+        }
+        elseif ($data_for == 'webseries') {            
+            $series_networks = WebSeriesContentNetwork::distinct()->pluck('network_id')->toArray();
+        }
+        else {
+            $movie_networks = MovieContentNetwork::distinct()->pluck('network_id')->toArray();
+            $series_networks = WebSeriesContentNetwork::distinct()->pluck('network_id')->toArray();
+        }
+
+        
+        $array_merge = array_merge($movie_networks, $series_networks);
+        
+        $networks = ContentNetwork::with('sliders')->where('deleted_at', null)  
+                    ->whereIn('id', $array_merge)
+                    ->where('status', 1)
+                    ->orderBy('networks_order', 'asc')
+                    ->get();
+
+        if ($networks) {            
+            print_r(json_encode($networks));            
+        }
+        else{            
+            print_r(json_encode([]));
+        }
+        exit;
+    }
+    // public function getAllContentsOfNetwork(Request $request, $network_id){
+    //     $user_id = $this->get_user_id();
+    //     $post = json_decode(file_get_contents('php://input', 'r'));
+
+    //     $contents = DB::table('content_network_log')->where('network_id', $network_id)->get();
+
+    //     $jsonData = [];
+    //     foreach ($contents as $key => $content) {
+    //         # for movies
+    //         if ($content->content_type == 1) {
+    //             $newRow = $this->getMovieDetailsById($content->content_id);
+    //             if($newRow != "") {
+    //                 $jsonData[] = $newRow;
+    //             }
+    //         }
+    //         else if ($content->content_type == 2){
+    //             # for series
+    //             $newRow = $this->getSeriesDetailsById($content->content_id);
+    //             if($newRow != "") {
+    //                 $jsonData[] = $newRow;
+    //             }
+    //         }
+    //     }        
+    //     print_r(json_encode($jsonData));
+    // }
+
+    public function getAllContentsOfNetwork(Request $request, $network_id){
+        $user_id = $this->get_user_id();
+        $post = json_decode(file_get_contents('php://input', 'r'));
+
+        $contents = DB::table('content_network_log')
+            ->where('network_id', $network_id)
+            ->get();
+
+        $jsonData = [];
+        foreach ($contents as $key => $content) {
+            # for movies
+            if ($content->content_type == 1) {
+                $newRow = $this->getMovieDetailsById($content->content_id);
+                if ($newRow != "") {
+                    $jsonData[] = $newRow;
+                }
+            }
+            # for series
+            else if ($content->content_type == 2) {
+                $newRow = $this->getSeriesDetailsById($content->content_id);
+                if ($newRow != "") {
+                    $jsonData[] = $newRow;
+                }
+            }
+        }
+
+        // ✅ Manual Pagination
+        $page = isset($_GET['page']) && is_numeric($_GET['page']) ? (int) $_GET['page'] : 1;
+        $limit = isset($_GET['records']) && is_numeric($_GET['records']) ? (int) $_GET['records'] : 10;
+        $offset = ($page - 1) * $limit;
+
+        $total = count($jsonData);
+        $pagedData = array_slice($jsonData, $offset, $limit);
+
+        $response = [
+            'status' => true,
+            'total' => $total,
+            'current_page' => $page,
+            'per_page' => $limit,
+            'last_page' => ceil($total / $limit),
+            'data' => $pagedData
+        ];
+
+        return response()->json($response);
+    }
+
+
+    // 5 August 2025
+
+    // bvjfgyjuty
+    // public function getGenreByContentNetwork(Request $request, $network_id, $data_for = null){
+    //     $user_id = $this->get_user_id();
+    //     $post = json_decode(file_get_contents('php://input', 'r'));
+
+    //     $movie_ids = [];
+    //     $sereis_ids = [];
+        
+    //     if ($data_for == 'movies') {            
+    //         $movie_ids = DB::table('movie_content_network')->where('network_id', $network_id)->pluck('movie_id');
+    //     }
+    //     elseif ($data_for == 'webseries') {            
+    //         $sereis_ids = DB::table('web_series_content_network')->where('network_id', $network_id)->pluck('webseries_id');
+    //     }
+    //     elseif ($data_for == null) {            
+    //         $movie_ids = DB::table('movie_content_network')->where('network_id', $network_id)->pluck('movie_id');
+    //         $sereis_ids = DB::table('web_series_content_network')->where('network_id', $network_id)->pluck('webseries_id');
+    //     }
+
+
+        
+    //     // print_r(json_encode($sereis_ids)); exit;
+    //     if (count($movie_ids) == 0 && count($sereis_ids) == 0) {
+    //         print_r(json_encode([
+    //             'status' => false,
+    //             'message' => 'No Content found with Content Id : '.$network_id
+    //         ]));
+    //         exit;
+    //     }
+
+    //     $allMovieGenres = [];       
+    //     $allSeiersGenres = []; 
+        
+    //     $finalArray = [];
+
+    //     if (count($movie_ids) > 0) {            
+    //         $genres = Movie::whereIn('id', $movie_ids)->where('status', 1)->pluck('genres')->filter()->toArray();               
+    //         $allMovieGenres = collect($genres)->flatMap(fn($genre) => array_map('trim', explode(',', $genre)))->unique()->values()->toArray();
+
+    //         $finalArray = array_merge($finalArray, $allMovieGenres);
+    //     }
+
+    //     if (count($sereis_ids) > 0) {            
+    //         $genres = WebSeries::whereIn('id', $sereis_ids)->where('status', 1)->pluck('genres')->filter()->toArray();               
+    //         $allSeiersGenres = collect($genres)->flatMap(fn($genre) => array_map('trim', explode(',', $genre)))->unique()->values()->toArray(); // reindex
+
+    //         $finalArray = array_merge($finalArray, $allSeiersGenres);
+    //     }
+
+        
+
+    //     $finalArray = array_values(array_unique($finalArray));
+        
+    //     if (count($finalArray) > 0) {            
+    //         print_r(json_encode([
+    //             'status' => true,
+    //             'genres' => $finalArray
+    //         ]));
+    //         exit;
+    //     }
+    //     else{
+    //         print_r(json_encode([
+    //             'status' => false,
+    //             'message' => 'No Genre Found !',
+    //         ]));
+    //         exit;
+    //     }        
+    // }
+
+
+    public function getGenreByContentNetwork(Request $request){
+        $user_id = $this->get_user_id();
+        $post = json_decode(file_get_contents('php://input', 'r'));
+
+        $network_id = $post->network_id ?? null;
+        $data_for = $post->data_for ?? null;
+
+        $movie_ids = [];
+        $sereis_ids = [];
+        
+        if ($data_for == 'movies') {            
+            $movie_ids = DB::table('movie_content_network')->where('network_id', $network_id)->pluck('movie_id');
+        }
+        elseif ($data_for == 'webseries') {            
+            $sereis_ids = DB::table('web_series_content_network')->where('network_id', $network_id)->pluck('webseries_id');
+        }
+        elseif ($data_for == null) {            
+            $movie_ids = DB::table('movie_content_network')->where('network_id', $network_id)->pluck('movie_id');
+            $sereis_ids = DB::table('web_series_content_network')->where('network_id', $network_id)->pluck('webseries_id');
+        }
+        else{
+            print_r(json_encode([
+                'status' => false,
+                'message' => "Invalid 'Data For' use"
+            ]));
+            exit;
+        }
+
+
+        
+        // print_r(json_encode($sereis_ids)); exit;
+        if (count($movie_ids) == 0 && count($sereis_ids) == 0) {
+            print_r(json_encode([
+                'status' => false,
+                'message' => 'No Content found with Content Id : '.$network_id
+            ]));
+            exit;
+        }
+
+        $allMovieGenres = [];       
+        $allSeiersGenres = []; 
+        
+        $finalArray = [];
+
+        if (count($movie_ids) > 0) {            
+            $genres = Movie::whereIn('id', $movie_ids)->where('status', 1)->pluck('genres')->filter()->toArray();               
+            $allMovieGenres = collect($genres)->flatMap(fn($genre) => array_map('trim', explode(',', $genre)))->unique()->values()->toArray();
+
+            $finalArray = array_merge($finalArray, $allMovieGenres);
+        }
+
+        if (count($sereis_ids) > 0) {            
+            $genres = WebSeries::whereIn('id', $sereis_ids)->where('status', 1)->pluck('genres')->filter()->toArray();               
+            $allSeiersGenres = collect($genres)->flatMap(fn($genre) => array_map('trim', explode(',', $genre)))->unique()->values()->toArray(); // reindex
+
+            $finalArray = array_merge($finalArray, $allSeiersGenres);
+        }
+
+        
+
+        $finalArray = array_values(array_unique($finalArray));
+        
+        if (count($finalArray) > 0) {            
+            print_r(json_encode([
+                'status' => true,
+                'genres' => $finalArray
+            ]));
+            exit;
+        }
+        else{
+            print_r(json_encode([
+                'status' => false,
+                'message' => 'No Genre Found !',
+            ]));
+            exit;
+        }        
+    }
+
+    public function getAdultMoviesGenre(Request $request){
+        
+        $allMovieGenres = []; 
+        $genres = AdultMovie::where('status', 1)->pluck('genres')->filter()->toArray();               
+
+        if (count($genres) > 0) {            
+            $allMovieGenres = collect($genres)->flatMap(fn($genre) => array_map('trim', explode(',', $genre)))->unique()->values()->toArray();            
+        }
+
+
+        if (count($allMovieGenres) > 0) {            
+            print_r(json_encode([
+                'status' => true,
+                'genres' => $allMovieGenres
+            ]));
+            exit;
+        }
+        else{
+            print_r(json_encode([
+                'status' => false,
+                'message' => 'No Genre Found !',
+            ]));
+            exit;
+        } 
+
+    }
+
+
+    // public function getAllCogetAllContentsOfNetworkNewntentsOfNetworkNew(Request $request, $network_id, $genre){
+    //     $user_id = $this->get_user_id();
+    //     $post = json_decode(file_get_contents('php://input', 'r'));
+
+    //     // $contents = DB::table('content_network_log')->where('network_id', $network_id)->get();
+    //     $contents = DB::table('content_network_log')->where('network_id', $network_id)->get();
+
+    //     // print_r(json_encode($contents)); exit;
+
+    //     $jsonData = [];
+    //     $count = 0;
+    //     foreach ($contents as $key => $content) {
+    //         # for movies
+    //         if ($content->content_type == 1) {
+    //             $newRow = $this->getMovieDetailsById($content->content_id, $genre);
+    //             if($newRow != "") {
+    //                 $jsonData[] = $newRow;
+    //                 $count +=1;
+    //             }
+    //         }
+    //         else if ($content->content_type == 2){
+    //             # for series
+    //             $newRow = $this->getSeriesDetailsById($content->content_id, $genre);
+    //             if($newRow != "") {
+    //                 $jsonData[] = $newRow;
+    //                 $count +=1;
+    //             }
+    //         }
+    //     }
+    //     print_r(json_encode($jsonData));
+    // }
+
+    // public function getAllContentsOfNetworkNew(Request $request){
+    //     $user_id = $this->get_user_id();
+    //     // , $network_id, $genre = null
+    //     $post = json_decode(file_get_contents('php://input', 'r'));
+    //     $network_id = $post->network_id;
+    //     $genre = $post->genre;
+
+    //     // Get query parameters for pagination
+    //     $page = (int) $request->query('page', 4);      // default page 1
+    //     $perPage = (int) $request->query('records', 10); // default 10 records per page
+
+    //     // Calculate offset
+    //     $offset = ($page-1) * $perPage;
+
+    //     // Fetch total count first (for pagination info)
+    //     $totalContents = DB::table('content_network_log')
+    //         ->where('network_id', $network_id)
+    //         ->count();
+
+    //         // print_r($perPage, $page); exit;
+
+    //     // Fetch paginated content
+    //     $contents = DB::table('content_network_log')
+    //         ->where('network_id', $network_id)
+    //         // ->offset($offset)
+    //         // ->limit($perPage)
+    //         ->get();
+
+    //     // print_r($contents); exit;
+
+        
+
+    //     $jsonData = [];
+    //     foreach ($contents as $content) {
+    //         if ($content->content_type == 1) {
+    //             // Movies
+    //             $newRow = $this->getMovieDetailsById($content->content_id, $genre);                
+    //             if ($newRow != "") {
+    //                 $jsonData[] = $newRow;  
+    //             }
+    //         } elseif ($content->content_type == 2) {
+    //             // Series
+    //             $newRow = $this->getSeriesDetailsById($content->content_id, $genre);
+    //             if ($newRow != "") {
+    //                 $jsonData[] = $newRow;
+    //             }
+    //         }
+    //     }
+
+    //     // print_r(json_encode([
+    //     //     'total' => $totalContents,
+    //     //     'data' => $jsonData
+    //     // ])); 
+    //     // exit;
+
+    //     // Prepare response with pagination info
+    //     return response()->json([
+    //         'current_page' => $page,
+    //         'per_page' => $perPage,
+    //         'total_records' => $totalContents,
+    //         'returned_records' => count($jsonData),
+    //         'data' => $jsonData
+    //     ]);
+    // }
+
+
+    // original function
+    // public function getAllContentsOfNetworkNew(Request $request){
+    //     // $user_id = $this->get_user_id();
+    //     $post = json_decode(file_get_contents('php://input', 'r'));
+
+    //     $page = isset($_GET['page']) && is_numeric($_GET['page']) ? (int) $_GET['page'] : 1;
+    //     $limit = isset($_GET['records']) && is_numeric($_GET['records']) ? (int) $_GET['records'] : 20;
+    //     // $offset = ($page - 1) * $limit;
+
+
+    //     $network_id = $post->network_id;
+    //     $genre = $post->genre ?? null;
+
+    //     $contents = DB::table('content_network_log')
+    //         ->where('network_id', $network_id)
+    //         ->get();
+
+    //     // print_r(json_encode($contents)); exit;
+
+    //     $jsonData = [];
+    //     foreach ($contents as $key => $content) {
+    //         # for movies
+    //         if ($content->content_type == 1) {
+    //             $newRow = $this->getMovieDetailsById($content->content_id, $genre, $page, $limit/2);
+    //             if ($newRow != "") {
+    //                 $jsonData[] = $newRow;
+    //             }
+    //         }
+    //         # for series
+    //         else if ($content->content_type == 2) {
+    //             $newRow = $this->getSeriesDetailsById($content->content_id, $genre, $page, $limit/2);
+    //             if ($newRow != "") {
+    //                 $jsonData[] = $newRow;
+    //             }
+    //         }
+    //     }
+
+    //     // ✅ Manual Pagination
+        
+
+    //     $total = count($jsonData);
+
+    //     // if (isset($_GET['page'])) {
+            
+    //     //     $pagedData = array_slice($jsonData, $offset, $limit);
+    
+    //         $response = [
+    //             'status' => true,
+    //             'total' => $total,
+    //             'current_page' => $page,
+    //             'per_page' => $limit,
+    //             'last_page' => ceil($total / $limit),
+    //             'data' => $jsonData
+    //         ];
+    //     // }
+    //     // else{
+    //     //     $response = [
+    //     //         'status' => true,
+    //     //         'total' => $total,                
+    //     //         'data' => $jsonData
+    //     //     ];
+    //     // }
+
+
+    //     return response()->json($response);
+    // }
+
+    public function getAllContentsOfNetworkNew(Request $request){
+        // $user_id = $this->get_user_id();
+        $post = json_decode(file_get_contents('php://input', 'r'));
+
+        $page = isset($_GET['page']) && is_numeric($_GET['page']) ? (int) $_GET['page'] : 1;
+        $limit = isset($_GET['records']) && is_numeric($_GET['records']) ? (int) $_GET['records'] : 20;
+        $offset = ($page - 1) * $limit;
+
+
+        $network_id = $post->network_id;
+        // $network_id = $request->network_id;
+        $genre = $post->genre ?? null;
+        // $genre = $request->genre ?? null;
+        $data_for = $post->data_for ?? null;
+
+        $contents = DB::table('content_network_log')
+            ->where('network_id', $network_id);
+
+        if ($data_for == 'movies') {
+            $contents = $contents->where('content_type', 1);
+        }
+        elseif ($data_for == 'webseries') {
+            $contents = $contents->where('content_type', 2);
+        }
+        
+        $contents = $contents->get();
+
+        $content_sliders = DB::table('content_network_slider')
+            ->where('content_network_id', $network_id);
+
+        
+        if ($data_for == 'movies') {
+            $content_sliders = $content_sliders->where('slider_for', 'movies');
+        }
+        elseif ($data_for == 'webseries') {
+            $content_sliders = $content_sliders->where('slider_for', 'webseries');
+        }
+
+        $content_sliders = $content_sliders->get();
+
+        $jsonData = [];
+        foreach ($contents as $key => $content) {
+            # for movies
+            if ($content->content_type == 1) {
+                $newRow = $this->getMovieDetailsById($content->content_id, $genre);
+                if ($newRow != "") {
+                    $jsonData[] = $newRow;
+                }
+            }
+            # for series
+            else if ($content->content_type == 2) {
+                $newRow = $this->getSeriesDetailsById($content->content_id, $genre);
+                if ($newRow != "") {
+                    $jsonData[] = $newRow;
+                }
+            }
+        }
+
+        // ✅ Manual Pagination
+        
+
+        $total = count($jsonData);
+
+        usort($jsonData, function ($a, $b) {
+            return strtotime($b['created_at']) <=> strtotime($a['created_at']);
+        });
+
+        if (isset($_GET['page'])) {
+            
+            $pagedData = array_slice($jsonData, $offset, $limit);
+    
+            $response = [
+                'status' => true,
+                'total' => $total,
+                'page_total' => count($pagedData),
+                'current_page' => $page,
+                'per_page' => $limit,
+                'last_page' => ceil($total / $limit),
+                'content_sliders' => $content_sliders,
+                'data' => $pagedData
+            ];
+        }
+        else{
+            $response = [
+                'status' => true,
+                'total' => $total,                
+                'content_sliders' => $content_sliders,
+                'data' => $jsonData
+                
+            ];
+        }
+
+
+        return response()->json($response);
+    }
+
+
+    protected function getMovieDetailsById($id, $genre=null){
+
+        $query = Movie::where('deleted_at', null)->where('id', $id) 
+        ->where('status', 1)  
+        //->where('is_recent', 1)     
+        ->with('networks');
+        
+
+        if (!empty($genre)) {
+            $query->where('genres', 'LIKE', '%' . $genre . '%');
+        }
+
+        $movie = $query->first();
+
+        if ($movie) {
+            return $movie;
+        }
+        else{
+            return "";
+        }
+    }
+
+    public function getMovieDetails($contentId){
+        $user_id = $this->get_user_id();
+        $post = json_decode(file_get_contents('php://input', 'r'));
+
+        $movie = Movie::where('status', 1)->where('deleted_at', null)->where('id', $contentId)  
+        ->where('status', 1)       
+        ->with('networks')
+        ->first();
+        
+        if ($movie) {
+            // print_r(json_encode(array(
+            //     'status' => true,
+            //     'message' => 'Movie with id : '.$contentId,
+            //     'data' =>$movie
+            // ))); 
+            print_r(json_encode($movie));
+        }
+        else{
+            // print_r(json_encode(array(
+            //     'status' => false,
+            //     'message' => 'Data not found !',                
+            // ))); 
+            print_r(json_encode([]));
+        }
+        
+    }
+
+    protected function getSeriesDetailsById($id, $genre=null){        
+
+        $query = WebSeries::where('status', 1)->where('deleted_at', null)->where('id', $id) 
+        ->where('status', 1)              
+        ->with('networks');
+
+        if (!empty($genre)) {
+            $query->where('genres', 'LIKE', '%' . $genre . '%');
+        }
+
+
+        // $query = $query->paginate($limit, ['*'], 'page', $page);
+
+
+        $series = $query->first();
+
+        if ($series) {
+            return $series;
+        }
+        else{
+            return "";
+        }        
+        exit;
+    }
+
+
+    public function searchContent($searchTerm, $type=0){
+        // $post = json_decode(file_get_contents('php://input', true));
+        $user_id = $this->get_user_id();
+        $jsonData = [];
+
+        // echo strlen($searchTerm); exit;
+        // $searchTerm = urldecode($searchTerm);
+        if(strlen($searchTerm) > 2) {
+            // movies
+            $movies = Movie::where('status', 1)
+            ->where(function($query) use ($searchTerm) {
+                $query->where('name', 'like', '%' . $searchTerm . '%')
+                    ->orWhere('description', 'like', '%' . $searchTerm . '%');
+            })
+            ->with('networks')
+            ->get();
+
+            // series
+            $series = WebSeries::where('status', 1)
+            ->where(function($query) use ($searchTerm) {
+                $query->where('name', 'like', '%' . $searchTerm . '%')
+                    ->orWhere('description', 'like', '%' . $searchTerm . '%');
+            })
+            ->with('networks')
+            ->get();
+
+            $channels = Channel::select(
+                'id',
+                'channel_name as name',
+                'channel_description  as description',
+                'channel_name as name',
+                'channel_logo as banner',
+                'channel_link as url',
+                'status'
+            )->where('channel_name', 'like', '%' . $searchTerm . '%')
+            ->orWhere('channel_description', 'like', '%' . $searchTerm . '%')
+            ->get();
+
+
+
+            if (count($movies) > 0) {
+                foreach ($movies as $key => $movie) {
+                    $jsonData[] = $movie;
+                }
+            }
+
+
+            if (count($series) > 0) {
+                foreach ($series as $key => $serie) {
+                    $jsonData[] = $serie;
+                }
+            }
+
+            if (count($channels) > 0) {
+                foreach ($channels as $key => $channel) {
+                    $jsonData[] = $channel;
+                }
+            }
+
+            if (!empty($jsonData)) {
+                // print_r(json_encode(array(
+                //     'status' => true,                    
+                //     'data' =>$jsonData
+                // ))); 
+                print_r(json_encode($jsonData));
+            }
+            else{
+                // print_r(json_encode(array(
+                //     'status' => false,
+                //     'message' => 'Data not found !',                    
+                //     'data' => []
+                // ))); 
+                print_r(json_encode([]));
+            }
+
+        }
+    }
+    
+    public function getTvChannels(Request $request){
+        $user_id = $this->get_user_id();
+        $post = json_decode(file_get_contents('php://input', 'r'));
+
+        $is_valid = $this->checkDomainPermission('tvshow');
+        if (!$is_valid) {
+            print_r(json_encode([
+                'status' => false,
+                'message' => 'You do not have permission to access this'
+            ]));
+            exit;
+        }
+
+        $tvChannels = TvChannel::where('deleted_at', null)->where('status',1);
+
+        if (isset($_GET['page']) && is_numeric($_GET['page'])) {
+            $page = (int) $_GET['page'];
+            $limit = isset($_GET['records']) && is_numeric($_GET['records']) ? (int) $_GET['records'] : 10;
+
+            $tvChannels = $tvChannels->paginate($limit, ['*'], 'page', $page);
+            // echo 'Page Set'; exit;
+
+            if (!$tvChannels->items()) {
+                print_r(json_encode([]));
+                exit;
+            }
+
+            print_r(json_encode($tvChannels->items()));
+        }
+        else{
+            if(isset($_GET['records']) && $_GET['records'] > 0){
+                $tvChannels = $tvChannels->limit($_GET['records'])->get();
+            }
+            else{
+                $tvChannels = $tvChannels->get();
+            }
+
+            if (!$tvChannels) {
+                print_r(json_encode([]));
+                exit;
+            }
+            print_r(json_encode($tvChannels));     
+            exit;
+        }
+
+    }
+
+    public function getTvShows($channelId){
+        if(!$channelId){
+            echo "channel id required ";
+            exit;
+        }
+        $user_id = $this->get_user_id();
+        $post = json_decode(file_get_contents('php://input', 'r'));
+
+        $is_valid = $this->checkDomainPermission('tvshow');
+        if (!$is_valid) {
+            print_r(json_encode([
+                'status' => false,
+                'message' => 'You do not have permission to access this'
+            ]));
+            exit;
+        }
+
+        $tvShows = TvShow::where('deleted_at', null)->where('tv_channel_id',$channelId)->where('status',1);
+
+        if (isset($_GET['page']) && is_numeric($_GET['page'])) {
+            $page = (int) $_GET['page'];
+            $limit = isset($_GET['records']) && is_numeric($_GET['records']) ? (int) $_GET['records'] : 10;
+
+            $tvShows = $tvShows->paginate($limit, ['*'], 'page', $page);            
+
+            if (!$tvShows->items()) {
+                print_r(json_encode([]));
+                exit;
+            }
+
+            print_r(json_encode($tvShows->items()));
+        }
+        else{
+            if(isset($_GET['records']) && $_GET['records'] > 0){
+                $tvShows = $tvShows->limit($_GET['records'])->get();
+            }
+            else{
+                $tvShows = $tvShows->get();
+            }
+
+            if (!$tvShows) {
+                print_r(json_encode([]));
+                exit;
+            }
+            print_r(json_encode($tvShows));     
+            exit;
+        }
+    }
+
+    public function getTvShowSeasons(Request $request,$showId = null){
+        if(!$showId){
+            echo "channel id required ";
+            exit;
+        }
+        $user_id = $this->get_user_id();
+        $post = json_decode(file_get_contents('php://input', 'r'));
+
+        $is_valid = $this->checkDomainPermission('tvshow');
+        if (!$is_valid) {
+            print_r(json_encode([
+                'status' => false,
+                'message' => 'You do not have permission to access this'
+            ]));
+            exit;
+        }
+
+        $tvShowSeasons = TvShowSeason::where('deleted_at', null)->where('show_id',$showId)->where('status',1);
+
+        if (isset($_GET['page']) && is_numeric($_GET['page'])) {
+            $page = (int) $_GET['page'];
+            $limit = isset($_GET['records']) && is_numeric($_GET['records']) ? (int) $_GET['records'] : 10;
+
+            $tvShowSeasons = $tvShowSeasons->paginate($limit, ['*'], 'page', $page);            
+            
+            if (!$tvShowSeasons->items()) {
+                print_r(json_encode([]));
+                exit;
+            }
+
+            print_r(json_encode($tvShowSeasons->items()));
+        }
+        else{
+            if(isset($_GET['records']) && $_GET['records'] > 0){
+                $tvShowSeasons = $tvShowSeasons->limit($_GET['records'])->get();
+            }
+            else{
+                $tvShowSeasons = $tvShowSeasons->get();
+            }
+
+            if (!$tvShowSeasons) {
+                print_r(json_encode([]));
+                exit;
+            }
+            print_r(json_encode($tvShowSeasons));     
+            exit;
+        }
+    }
+
+
+    public function getTvShowEpisodes(Request $request,$seasonId = null){
+        if(!$seasonId){
+            echo "channel id required ";
+            exit;
+        }
+        $user_id = $this->get_user_id();
+        $post = json_decode(file_get_contents('php://input', 'r'));
+
+        $is_valid = $this->checkDomainPermission('tvshow');
+        if (!$is_valid) {
+            print_r(json_encode([
+                'status' => false,
+                'message' => 'You do not have permission to access this'
+            ]));
+            exit;
+        }
+
+        $tvShowEpisodes = TvShowEpisode::where('deleted_at', null)->where('season_id',$seasonId)->where('status',1);
+
+        if (isset($_GET['page']) && is_numeric($_GET['page'])) {
+            $page = (int) $_GET['page'];
+            $limit = isset($_GET['records']) && is_numeric($_GET['records']) ? (int) $_GET['records'] : 10;
+
+            $tvShowEpisodes = $tvShowEpisodes->paginate($limit, ['*'], 'page', $page);            
+            
+            if (!$tvShowEpisodes->items()) {
+                print_r(json_encode([]));
+                exit;
+            }
+
+            print_r(json_encode($tvShowEpisodes->items()));
+        }
+        else{
+            if(isset($_GET['records']) && $_GET['records'] > 0){
+                $tvShowEpisodes = $tvShowEpisodes->limit($_GET['records'])->get();
+            }
+            else{
+                $tvShowEpisodes = $tvShowEpisodes->get();
+            }
+
+            if (!$tvShowEpisodes) {
+                print_r(json_encode([]));
+                exit;
+            }
+            print_r(json_encode($tvShowEpisodes));     
+            exit;
+        }
+    }
+
+    // 30 june 2025
+
+    public function getReligiousChannel(Request $request){
+        $user_id = $this->get_user_id();
+        $post = json_decode(file_get_contents('php://input', 'r'));
+
+        $is_valid = $this->checkDomainPermission('religious');
+        if (!$is_valid) {
+            print_r(json_encode([
+                'status' => false,
+                'message' => 'You do not have permission to access this'
+            ]));
+            exit;
+        }
+
+        $relChannels = RelChannel::where('deleted_at', null)->where('status',1);
+
+        if (isset($_GET['page']) && is_numeric($_GET['page'])) {
+            $page = (int) $_GET['page'];
+            $limit = isset($_GET['records']) && is_numeric($_GET['records']) ? (int) $_GET['records'] : 10;
+
+            $relChannels = $relChannels->paginate($limit, ['*'], 'page', $page);            
+            
+            if (!$relChannels->items()) {
+                print_r(json_encode([]));
+                exit;
+            }
+
+            print_r(json_encode($relChannels->items()));
+        }
+        else{
+            if(isset($_GET['records']) && $_GET['records'] > 0){
+                $relChannels = $relChannels->limit($_GET['records'])->get();
+            }
+            else{
+                $relChannels = $relChannels->get();
+            }
+
+            if (!$relChannels) {
+                print_r(json_encode([]));
+                exit;
+            }
+            print_r(json_encode($relChannels));     
+            exit;
+        }
+    }
+
+    public function getReligiousShows(Request $request,$channelId = null){
+        if(!$channelId){
+            echo "channel id required ";
+            exit;
+        }
+        $user_id = $this->get_user_id();
+        $post = json_decode(file_get_contents('php://input', 'r'));
+
+        $is_valid = $this->checkDomainPermission('religious');
+        if (!$is_valid) {
+            print_r(json_encode([
+                'status' => false,
+                'message' => 'You do not have permission to access this'
+            ]));
+            exit;
+        }
+
+        $relShows = RelShow::where('deleted_at', null)->where('channel_id',$channelId)->where('status',1);
+
+        if (isset($_GET['page']) && is_numeric($_GET['page'])) {
+            $page = (int) $_GET['page'];
+            $limit = isset($_GET['records']) && is_numeric($_GET['records']) ? (int) $_GET['records'] : 10;
+
+            $relShows = $relShows->paginate($limit, ['*'], 'page', $page);            
+            
+            if (!$relShows->items()) {
+                print_r(json_encode([]));
+                exit;
+            }
+
+            print_r(json_encode($relShows->items()));
+        }
+        else{
+            if(isset($_GET['records']) && $_GET['records'] > 0){
+                $relShows = $relShows->limit($_GET['records'])->get();
+            }
+            else{
+                $relShows = $relShows->get();
+            }
+
+            if (!$relShows) {
+                print_r(json_encode([]));
+                exit;
+            }
+            print_r(json_encode($relShows));     
+            exit;
+        }
+    }
+
+    public function getReligiousShowsEpisodes(Request $request,$showId = null){
+        if(!$showId){
+            echo "Show id required ";
+            exit;
+        }
+        $user_id = $this->get_user_id();
+        $post = json_decode(file_get_contents('php://input', 'r'));
+
+        $is_valid = $this->checkDomainPermission('religious');
+        if (!$is_valid) {
+            print_r(json_encode([
+                'status' => false,
+                'message' => 'You do not have permission to access this'
+            ]));
+            exit;
+        }
+
+        $relShowepisodes = RelshowsEpisode::where('deleted_at', null)->where('show_id',$showId)->where('status',1);
+
+        if (isset($_GET['page']) && is_numeric($_GET['page'])) {
+            $page = (int) $_GET['page'];
+            $limit = isset($_GET['records']) && is_numeric($_GET['records']) ? (int) $_GET['records'] : 10;
+
+            $relShowepisodes = $relShowepisodes->paginate($limit, ['*'], 'page', $page);            
+            
+            if (!$relShowepisodes->items()) {
+                print_r(json_encode([]));
+                exit;
+            }
+
+            print_r(json_encode($relShowepisodes->items()));
+        }
+        else{
+            if(isset($_GET['records']) && $_GET['records'] > 0){
+                $relShowepisodes = $relShowepisodes->limit($_GET['records'])->get();
+            }
+            else{
+                $relShowepisodes = $relShowepisodes->get();
+            }
+
+            if (!$relShowepisodes) {
+                print_r(json_encode([]));
+                exit;
+            }
+            print_r(json_encode($relShowepisodes));     
+            exit;
+        }
+    }
+
+
+    public function getsportCategories(Request $request){
+        $user_id = $this->get_user_id();
+        $post = json_decode(file_get_contents('php://input', 'r'));
+
+        $is_valid = $this->checkDomainPermission('sports');
+        if (!$is_valid) {
+            print_r(json_encode([
+                'status' => false,
+                'message' => 'You do not have permission to access this'
+            ]));
+            exit;
+        }
+
+        $categories = SportsCategory::where('deleted_at', null)->where('status',1);
+
+        if (isset($_GET['page']) && is_numeric($_GET['page'])) {
+            $page = (int) $_GET['page'];
+            $limit = isset($_GET['records']) && is_numeric($_GET['records']) ? (int) $_GET['records'] : 10;
+
+            $categories = $categories->paginate($limit, ['*'], 'page', $page);            
+            
+            if (!$categories->items()) {
+                print_r(json_encode([]));
+                exit;
+            }
+
+            print_r(json_encode($categories->items()));
+        }
+        else{
+            if(isset($_GET['records']) && $_GET['records'] > 0){
+                $categories = $categories->limit($_GET['records'])->get();
+            }
+            else{
+                $categories = $categories->get();
+            }
+
+            if (!$categories) {
+                print_r(json_encode([]));
+                exit;
+            }
+            print_r(json_encode($categories));     
+            exit;
+        }
+    }
+
+    public function getsportTournament(Request $request,$cateId = null){
+        if(!$cateId){
+            echo "channel id required ";
+            exit;
+        }
+        $user_id = $this->get_user_id();
+
+        $is_valid = $this->checkDomainPermission('sports');
+        if (!$is_valid) {
+            print_r(json_encode([
+                'status' => false,
+                'message' => 'You do not have permission to access this'
+            ]));
+            exit;
+        }
+        $post = json_decode(file_get_contents('php://input', 'r'));
+
+        $tournaments = SportsTournament::where('deleted_at', null)->where('sports_category_id',$cateId)->where('status',1);
+
+        if (isset($_GET['page']) && is_numeric($_GET['page'])) {
+            $page = (int) $_GET['page'];
+            $limit = isset($_GET['records']) && is_numeric($_GET['records']) ? (int) $_GET['records'] : 10;
+
+            $tournaments = $tournaments->paginate($limit, ['*'], 'page', $page);            
+            
+            if (!$tournaments->items()) {
+                print_r(json_encode([]));
+                exit;
+            }
+
+            print_r(json_encode($tournaments->items()));
+        }
+        else{
+            if(isset($_GET['records']) && $_GET['records'] > 0){
+                $tournaments = $tournaments->limit($_GET['records'])->get();
+            }
+            else{
+                $tournaments = $tournaments->get();
+            }
+
+            if (!$tournaments) {
+                print_r(json_encode([]));
+                exit;
+            }
+            print_r(json_encode($tournaments));     
+            exit;
+        }
+    }
+
+
+    public function getTouranamentSeasons(Request $request,$tournamentId = null){
+        if(!$tournamentId){
+            echo "tournament id required ";
+            exit;
+        }
+        // $user_id = $this->get_user_id();
+        $post = json_decode(file_get_contents('php://input', 'r'));
+
+        $is_valid = $this->checkDomainPermission('sports');
+        // if (!$is_valid) {
+        //     print_r(json_encode([
+        //         'status' => false,
+        //         'message' => 'You do not have permission to access this'
+        //     ]));
+        //     exit;
+        // }        
+
+        $touramentSeasons = TournamentSeason::where('deleted_at', null)->where('sports_tournament_id',$tournamentId)->where('status',1);
+
+        if (isset($_GET['page']) && is_numeric($_GET['page'])) {
+            $page = (int) $_GET['page'];
+            $limit = isset($_GET['records']) && is_numeric($_GET['records']) ? (int) $_GET['records'] : 10;
+
+            $touramentSeasons = $touramentSeasons->paginate($limit, ['*'], 'page', $page);            
+            
+            if (!$touramentSeasons->items()) {
+                print_r(json_encode([]));
+                exit;
+            }
+
+            print_r(json_encode($touramentSeasons->items()));
+        }
+        else{
+            if(isset($_GET['records']) && $_GET['records'] > 0){
+                $touramentSeasons = $touramentSeasons->limit($_GET['records'])->get();
+            }
+            else{
+                $touramentSeasons = $touramentSeasons->get();
+            }
+
+            if (!$touramentSeasons) {
+                print_r(json_encode([]));
+                exit;
+            }
+            print_r(json_encode($touramentSeasons));     
+            exit;
+        }
+    }
+
+    public function getTouranamentSeasonsEvents(Request $request,$seasonId = null){
+        if(!$seasonId){
+            echo "season id required ";
+            exit;
+        }
+        // $user_id = $this->get_user_id();
+        $post = json_decode(file_get_contents('php://input', 'r'));
+
+        $is_valid = $this->checkDomainPermission('sports');
+        // if (!$is_valid) {
+        //     print_r(json_encode([
+        //         'status' => false,
+        //         'message' => 'You do not have permission to access this'
+        //     ]));
+        //     exit;
+        // }        
+
+        $touramentSeasonEvents = TournamentMatches::where('deleted_at', null)->where('tournament_season_id',$seasonId)->where('status',1);
+
+        if (isset($_GET['page']) && is_numeric($_GET['page'])) {
+            $page = (int) $_GET['page'];
+            $limit = isset($_GET['records']) && is_numeric($_GET['records']) ? (int) $_GET['records'] : 10;
+
+            $touramentSeasonEvents = $touramentSeasonEvents->paginate($limit, ['*'], 'page', $page);            
+            
+            if (!$touramentSeasonEvents->items()) {
+                print_r(json_encode([]));
+                exit;
+            }
+
+            print_r(json_encode($touramentSeasonEvents->items()));
+            exit;
+        }
+        else{
+            if(isset($_GET['records']) && $_GET['records'] > 0){
+                $touramentSeasonEvents = $touramentSeasonEvents->limit($_GET['records'])->get();
+            }
+            else{
+                $touramentSeasonEvents = $touramentSeasonEvents->get();
+            }
+
+            if (!$touramentSeasonEvents) {
+                print_r(json_encode([]));
+                exit;
+            }
+            print_r(json_encode($touramentSeasonEvents));     
+            exit;
+        }
+    }
+
+    protected function getGenre($genre){
+        $myGenre = Genre::where('title', $genre)->first();
+        
+
+        if ($myGenre) {
+            return true;
+        }
+        else{
+            print_r(json_encode([
+                'status' => false,
+                'message' => 'Invalid Genre',
+            ]));
+            exit;
+        }
+    }
+
+    public function getAllAbove18Movies(Request $request){
+        $above_18_pin = $this->get_user_pin();
+
+        $post = json_decode(file_get_contents('php://input', 'r'));
+
+        $pin = $post->pin;
+        $genre = $post->genre;
+        
+        if ($pin != $above_18_pin) {
+            print_r(json_encode([
+                'status' => false,
+                'message' => 'Invalid Pin'
+            ]));
+            exit;
+        }
+
+        $is_valid = $this->checkDomainPermission('movies');
+        if (!$is_valid) {
+            print_r(json_encode([
+                'status' => false,
+                'message' => 'You do not have permission to access this'
+            ]));
+            exit;
+        }
+        $user_id = $this->get_user_id();
+        $post = json_decode(file_get_contents('php://input', 'r'));
+        $query = AdultMovie::where('status', 1)
+                ->whereNull('deleted_at')
+                ->with('networks');
+
+        if (!empty($genre)) {
+
+            $is_genre = $this->getGenre($genre);
+            if ($is_genre) {                
+                $query->where('genres', 'Like', '%'.$genre.'%');
+            }
+        }
+
+
+
+        if (isset($_GET['page']) && is_numeric($_GET['page'])) {
+            $page = (int) $_GET['page'];
+            $limit = isset($_GET['records']) && is_numeric($_GET['records']) ? (int) $_GET['records'] : 10;
+    
+            $movies = $query->paginate($limit, ['*'], 'page', $page);
+
+            print_r(json_encode($movies->items()));
+        } else {
+
+            if (isset($_GET['records']) && $_GET['records'] > 0) {
+                $movies = $query->limit($_GET['records'])->get();
+            } else {
+                $movies = $query->get();
+            }
+            print_r(json_encode($movies));
+            exit;
+        }
+
+        // print_r(json_encode(array(
+        //     'status' => true,
+        //     'message' => 'All active Movie.',
+        //     'data' =>$movies
+        // )));
+        
+    }
+
+    // 18 july 2025
+
+    // KidsChannel
+    public function getKidsChannels(Request $request){
+        $user_id = $this->get_user_id();
+        $post = json_decode(file_get_contents('php://input', 'r'));
+
+        $is_valid = $this->checkDomainPermission('kids_show');
+        if (!$is_valid) {
+            print_r(json_encode([
+                'status' => false,
+                'message' => 'You do not have permission to access this'
+            ]));
+            exit;
+        }        
+
+        $kidsChannels = KidsChannel::where('deleted_at', null)->where('status',1);
+
+        if (isset($_GET['page']) && is_numeric($_GET['page'])) {
+            $page = (int) $_GET['page'];
+            $limit = isset($_GET['records']) && is_numeric($_GET['records']) ? (int) $_GET['records'] : 10;
+
+            $kidsChannels = $kidsChannels->paginate($limit, ['*'], 'page', $page);
+            // echo 'Page Set'; exit;
+
+            if (!$kidsChannels->items()) {
+                print_r(json_encode([]));
+                exit;
+            }
+
+            print_r(json_encode($kidsChannels->items()));
+        }
+        else{
+            if(isset($_GET['records']) && $_GET['records'] > 0){
+                $kidsChannels = $kidsChannels->limit($_GET['records'])->get();
+            }
+            else{
+                $kidsChannels = $kidsChannels->get();
+            }
+
+            if (!$kidsChannels) {
+                print_r(json_encode([]));
+                exit;
+            }
+            print_r(json_encode($kidsChannels));     
+            exit;
+        }
+
+    }
+
+
+
+    // KidsShow
+    public function getKidsShows(Request $request,$channelId = null){
+        if(!$channelId){
+            echo "channel id required ";
+            exit;
+        }
+        $user_id = $this->get_user_id();
+        $post = json_decode(file_get_contents('php://input', 'r'));
+
+        $is_valid = $this->checkDomainPermission('kids_show');
+        if (!$is_valid) {
+            print_r(json_encode([
+                'status' => false,
+                'message' => 'You do not have permission to access this'
+            ]));
+            exit;
+        }        
+
+        $kidShows = KidsShow::where('deleted_at', null)->where('kid_channel_id',$channelId)->where('status',1);
+
+        if (isset($_GET['page']) && is_numeric($_GET['page'])) {
+            $page = (int) $_GET['page'];
+            $limit = isset($_GET['records']) && is_numeric($_GET['records']) ? (int) $_GET['records'] : 10;
+
+            $kidShows = $kidShows->paginate($limit, ['*'], 'page', $page);            
+
+            if (!$kidShows->items()) {
+                print_r(json_encode([]));
+                exit;
+            }
+
+            print_r(json_encode($kidShows->items()));
+        }
+        else{
+            if(isset($_GET['records']) && $_GET['records'] > 0){
+                $kidShows = $kidShows->limit($_GET['records'])->get();
+            }
+            else{
+                $kidShows = $kidShows->get();
+            }
+
+            if (!$kidShows) {
+                print_r(json_encode([]));
+                exit;
+            }
+            print_r(json_encode($kidShows));     
+            exit;
+        }
+    }
+
+
+    // KidShowsSeason
+    public function getKidsShowSeasons(Request $request,$showId = null){
+        if(!$showId){
+            echo "channel id required ";
+            exit;
+        }
+        $user_id = $this->get_user_id();
+
+        $is_valid = $this->checkDomainPermission('kids_show');
+        if (!$is_valid) {
+            print_r(json_encode([
+                'status' => false,
+                'message' => 'You do not have permission to access this'
+            ]));
+            exit;
+        }         
+        $post = json_decode(file_get_contents('php://input', 'r'));
+
+        $kidShowSeasons = KidShowsSeason::where('deleted_at', null)->where('show_id',$showId)->where('status',1);
+
+        if (isset($_GET['page']) && is_numeric($_GET['page'])) {
+            $page = (int) $_GET['page'];
+            $limit = isset($_GET['records']) && is_numeric($_GET['records']) ? (int) $_GET['records'] : 10;
+
+            $kidShowSeasons = $kidShowSeasons->paginate($limit, ['*'], 'page', $page);            
+            
+            if (!$kidShowSeasons->items()) {
+                print_r(json_encode([]));
+                exit;
+            }
+
+            print_r(json_encode($kidShowSeasons->items()));
+        }
+        else{
+            if(isset($_GET['records']) && $_GET['records'] > 0){
+                $kidShowSeasons = $kidShowSeasons->limit($_GET['records'])->get();
+            }
+            else{
+                $kidShowSeasons = $kidShowSeasons->get();
+            }
+
+            if (!$kidShowSeasons) {
+                print_r(json_encode([]));
+                exit;
+            }
+            print_r(json_encode($kidShowSeasons));     
+            exit;
+        }
+    }
+
+    // KidshowsEpisode
+    public function getKidShowEpisodes(Request $request,$seasonId = null){
+        if(!$seasonId){
+            echo "channel id required ";
+            exit;
+        }
+        $user_id = $this->get_user_id();
+
+        $is_valid = $this->checkDomainPermission('kids_show');
+        if (!$is_valid) {
+            print_r(json_encode([
+                'status' => false,
+                'message' => 'You do not have permission to access this'
+            ]));
+            exit;
+        } 
+
+
+        $post = json_decode(file_get_contents('php://input', 'r'));
+
+        $kidShowEpisodes = KidshowsEpisode::where('deleted_at', null)->where('season_id',$seasonId)->where('status',1);
+
+        if (isset($_GET['page']) && is_numeric($_GET['page'])) {
+            $page = (int) $_GET['page'];
+            $limit = isset($_GET['records']) && is_numeric($_GET['records']) ? (int) $_GET['records'] : 10;
+
+            $kidShowEpisodes = $kidShowEpisodes->paginate($limit, ['*'], 'page', $page);            
+            
+            if (!$kidShowEpisodes->items()) {
+                print_r(json_encode([]));
+                exit;
+            }
+
+            print_r(json_encode($kidShowEpisodes->items()));
+        }
+        else{
+            if(isset($_GET['records']) && $_GET['records'] > 0){
+                $kidShowEpisodes = $kidShowEpisodes->limit($_GET['records'])->get();
+            }
+            else{
+                $kidShowEpisodes = $kidShowEpisodes->get();
+            }
+
+            if (!$kidShowEpisodes) {
+                print_r(json_encode([]));
+                exit;
+            }
+            print_r(json_encode($kidShowEpisodes));     
+            exit;
+        }
+    }
+
+
+
+    // TvChannelPak
+    public function getTvChannelsPak(Request $request){
+        $user_id = $this->get_user_id();
+        $post = json_decode(file_get_contents('php://input', 'r'));
+
+        $is_valid = $this->checkDomainPermission('tvshow_pak');
+        if (!$is_valid) {
+            print_r(json_encode([
+                'status' => false,
+                'message' => 'You do not have permission to access this'
+            ]));
+            exit;
+        } 
+
+        $tvChannels = TvChannelPak::where('deleted_at', null)->where('status',1);
+
+        if (isset($_GET['page']) && is_numeric($_GET['page'])) {
+            $page = (int) $_GET['page'];
+            $limit = isset($_GET['records']) && is_numeric($_GET['records']) ? (int) $_GET['records'] : 10;
+
+            $tvChannels = $tvChannels->paginate($limit, ['*'], 'page', $page);
+            // echo 'Page Set'; exit;
+
+            if (!$tvChannels->items()) {
+                print_r(json_encode([]));
+                exit;
+            }
+
+            print_r(json_encode($tvChannels->items()));
+        }
+        else{
+            if(isset($_GET['records']) && $_GET['records'] > 0){
+                $tvChannels = $tvChannels->limit($_GET['records'])->get();
+            }
+            else{
+                $tvChannels = $tvChannels->get();
+            }
+
+            if (!$tvChannels) {
+                print_r(json_encode([]));
+                exit;
+            }
+            print_r(json_encode($tvChannels));     
+            exit;
+        }
+
+    }
+
+    // TvShowPak
+    public function getTvShowsPak(Request $request,$channelId = null){
+        if(!$channelId){
+            echo "channel id required ";
+            exit;
+        }
+        $user_id = $this->get_user_id();
+
+        $is_valid = $this->checkDomainPermission('tvshow_pak');
+        if (!$is_valid) {
+            print_r(json_encode([
+                'status' => false,
+                'message' => 'You do not have permission to access this'
+            ]));
+            exit;
+        } 
+
+
+        $post = json_decode(file_get_contents('php://input', 'r'));
+
+        $tvShows = TvShowPak::where('deleted_at', null)->where('tv_channel_id',$channelId)->where('status',1);
+
+        if (isset($_GET['page']) && is_numeric($_GET['page'])) {
+            $page = (int) $_GET['page'];
+            $limit = isset($_GET['records']) && is_numeric($_GET['records']) ? (int) $_GET['records'] : 10;
+
+            $tvShows = $tvShows->paginate($limit, ['*'], 'page', $page);            
+
+            if (!$tvShows->items()) {
+                print_r(json_encode([]));
+                exit;
+            }
+
+            print_r(json_encode($tvShows->items()));
+        }
+        else{
+            if(isset($_GET['records']) && $_GET['records'] > 0){
+                $tvShows = $tvShows->limit($_GET['records'])->get();
+            }
+            else{
+                $tvShows = $tvShows->get();
+            }
+
+            if (!$tvShows) {
+                print_r(json_encode([]));
+                exit;
+            }
+            print_r(json_encode($tvShows));     
+            exit;
+        }
+    }
+
+    // TvShowSeasonPak
+    public function getTvShowSeasonsPak(Request $request,$showId = null){
+        if(!$showId){
+            echo "channel id required ";
+            exit;
+        }
+        $user_id = $this->get_user_id();
+
+        $is_valid = $this->checkDomainPermission('tvshow_pak');
+        if (!$is_valid) {
+            print_r(json_encode([
+                'status' => false,
+                'message' => 'You do not have permission to access this'
+            ]));
+            exit;
+        } 
+        $post = json_decode(file_get_contents('php://input', 'r'));
+
+        $tvShowSeasons = TvShowSeasonPak::where('deleted_at', null)->where('show_id',$showId)->where('status',1);
+
+        if (isset($_GET['page']) && is_numeric($_GET['page'])) {
+            $page = (int) $_GET['page'];
+            $limit = isset($_GET['records']) && is_numeric($_GET['records']) ? (int) $_GET['records'] : 10;
+
+            $tvShowSeasons = $tvShowSeasons->paginate($limit, ['*'], 'page', $page);            
+            
+            if (!$tvShowSeasons->items()) {
+                print_r(json_encode([]));
+                exit;
+            }
+
+            print_r(json_encode($tvShowSeasons->items()));
+        }
+        else{
+            if(isset($_GET['records']) && $_GET['records'] > 0){
+                $tvShowSeasons = $tvShowSeasons->limit($_GET['records'])->get();
+            }
+            else{
+                $tvShowSeasons = $tvShowSeasons->get();
+            }
+
+            if (!$tvShowSeasons) {
+                print_r(json_encode([]));
+                exit;
+            }
+            print_r(json_encode($tvShowSeasons));     
+            exit;
+        }
+    }
+
+    // TvShowEpisodePak
+    public function getTvShowEpisodesPak(Request $request,$seasonId = null){
+        if(!$seasonId){
+            echo "channel id required ";
+            exit;
+        }
+        $user_id = $this->get_user_id();
+
+        $is_valid = $this->checkDomainPermission('tvshow_pak');
+        if (!$is_valid) {
+            print_r(json_encode([
+                'status' => false,
+                'message' => 'You do not have permission to access this'
+            ]));
+            exit;
+        } 
+        $post = json_decode(file_get_contents('php://input', 'r'));
+
+        $tvShowEpisodes = TvShowEpisodePak::where('deleted_at', null)->where('season_id',$seasonId)->where('status',1);
+
+        if (isset($_GET['page']) && is_numeric($_GET['page'])) {
+            $page = (int) $_GET['page'];
+            $limit = isset($_GET['records']) && is_numeric($_GET['records']) ? (int) $_GET['records'] : 10;
+
+            $tvShowEpisodes = $tvShowEpisodes->paginate($limit, ['*'], 'page', $page);            
+            
+            if (!$tvShowEpisodes->items()) {
+                print_r(json_encode([]));
+                exit;
+            }
+
+            print_r(json_encode($tvShowEpisodes->items()));
+        }
+        else{
+            if(isset($_GET['records']) && $_GET['records'] > 0){
+                $tvShowEpisodes = $tvShowEpisodes->limit($_GET['records'])->get();
+            }
+            else{
+                $tvShowEpisodes = $tvShowEpisodes->get();
+            }
+
+            if (!$tvShowEpisodes) {
+                print_r(json_encode([]));
+                exit;
+            }
+            print_r(json_encode($tvShowEpisodes));     
+            exit;
+        }
+    }
+
+    
+    public function getAllStageShowsPak(Request $request){        
+        $user_id = $this->get_user_id();
+        $post = json_decode(file_get_contents('php://input', 'r'));
+
+        $is_valid = $this->checkDomainPermission('stage_shows');
+        if (!$is_valid) {
+            print_r(json_encode([
+                'status' => false,
+                'message' => 'You do not have permission to access this'
+            ]));
+            exit;
+        } 
+
+
+        $query = StageshowPak::where('status', 1)->whereNull('deleted_at')->with('networks');
+        
+        if (isset($_GET['page']) && is_numeric($_GET['page'])) {
+            $page = (int) $_GET['page'];
+            $limit = isset($_GET['records']) && is_numeric($_GET['records']) ? (int) $_GET['records'] : 10;
+    
+            $stageShows = $query->paginate($limit, ['*'], 'page', $page);
+
+            print_r(json_encode($stageShows->items()));
+        } else {
+
+            if (isset($_GET['records']) && $_GET['records'] > 0) {
+                $stageShows = $query->limit($_GET['records'])->get();
+            } else {
+                $stageShows = $query->get();
+            }
+            print_r(json_encode($stageShows));
+            exit;
+        }        
+    }
+
+
+    
+
+    public function getAllLaughterShows(Request $request){
+
+        $user_id = $this->get_user_id();
+        $post = json_decode(file_get_contents('php://input', 'r'));
+
+        
+        $is_valid = $this->checkDomainPermission('stage_shows');
+        if (!$is_valid) {
+            print_r(json_encode([
+                'status' => false,
+                'message' => 'You do not have permission to access this'
+            ]));
+            exit;
+        } 
+
+        $query = Laughterhow::where('status', 1)->whereNull('deleted_at')->where('status',1)->with('networks');
+        
+        if (isset($_GET['page']) && is_numeric($_GET['page'])) {
+            $page = (int) $_GET['page'];
+            $limit = isset($_GET['records']) && is_numeric($_GET['records']) ? (int) $_GET['records'] : 10;
+    
+            $laughterShows = $query->paginate($limit, ['*'], 'page', $page);
+
+            print_r(json_encode($laughterShows->items()));
+        } else {
+
+            if (isset($_GET['records']) && $_GET['records'] > 0) {
+                $laughterShows = $query->limit($_GET['records'])->get();
+            } else {
+                $laughterShows = $query->get();
+            }
+            print_r(json_encode($laughterShows));
+            exit;
+        }        
+    }
+
+
+    // public function getLiveTvGenreList(Request $request){
+    //     $user_id = $this->get_user_id();
+            
+    //     $channels = Channel::where('channels.status', 1)
+    //         ->whereNull('channels.deleted_at')
+    //         ->leftJoin('languages', 'channels.channel_language', '=', 'languages.id')
+    //         ->get([
+    //             'channels.genres',
+    //             'languages.id as language_id',
+    //             'languages.title as language_title'
+    //         ]);
+    
+    //     $genreLanguageMap = [];
+    
+    //     foreach ($channels as $channel) {
+    //         $genres = array_map('trim', explode(',', $channel->genres));
+    //         $languageId = $channel->language_id;
+    //         $languageTitle = $channel->language_title;
+    
+    //         // Skip if language data is missing
+    //         if (!$languageId || !$languageTitle) continue;
+    
+    //         foreach ($genres as $genre) {
+    //             if (!isset($genreLanguageMap[$genre])) {
+    //                 $genreLanguageMap[$genre] = [];
+    //             }
+    
+    //             // Check if language already added
+    //             $alreadyExists = collect($genreLanguageMap[$genre])->contains(function ($lang) use ($languageId) {
+    //                 return $lang['id'] == $languageId;
+    //             });
+    
+    //             if (!$alreadyExists) {
+    //                 $genreLanguageMap[$genre][] = [
+    //                     'id' => $languageId,
+    //                     'title' => $languageTitle
+    //                 ];
+    //             }
+    //         }
+    //     }
+
+    public function getLiveTvGenreList(Request $request)
+    {
+        $user_id = $this->get_user_id();
+
+        $channels = Channel::where('channels.status', 1)
+            ->whereNull('channels.deleted_at')
+            ->leftJoin('languages', 'channels.channel_language', '=', 'languages.id')
+            ->get([
+                'channels.genres',
+                'languages.id as language_id',
+                'languages.title as language_title'
+            ]);
+
+        $genreLanguageMap = [];
+        $allLanguages = [];
+
+        foreach ($channels as $channel) {
+            // Split and clean genres
+            $genres = array_filter(array_map('trim', explode(',', $channel->genres ?? '')));
+
+            if (!$channel->language_id || !$channel->language_title) {
+                continue;
+            }
+
+            // Collect ALL unique languages for "All"
+            if (!collect($allLanguages)->contains('id', $channel->language_id)) {
+                $allLanguages[] = [
+                    'id'    => $channel->language_id,
+                    'title' => $channel->language_title,
+                ];
+            }
+
+            foreach ($genres as $genre) {
+                if (!isset($genreLanguageMap[$genre])) {
+                    $genreLanguageMap[$genre] = [];
+                }
+
+                if (!collect($genreLanguageMap[$genre])->contains('id', $channel->language_id)) {
+                    $genreLanguageMap[$genre][] = [
+                        'id'    => $channel->language_id,
+                        'title' => $channel->language_title,
+                    ];
+                }
+            }
+        }
+
+        // Convert to required array format
+        $finalResult = [];
+
+        // Add "All" first
+        $finalResult[] = [
+            'genre'     => 'All',
+            'languages' => $allLanguages
+        ];
+
+        // Now add other genres
+        foreach ($genreLanguageMap as $genre => $languages) {
+            $finalResult[] = [
+                'genre'     => $genre,
+                'languages' => $languages
+            ];
+        }
+
+        return response()->json([
+            'status' => true,
+            'data'   => $finalResult
+        ]);
+    }
+
+    public function getAdultMoviesGenreList(Request $request)
+    {
+        $user_id = $this->get_user_id();
+
+        $channels = Channel::where('channels.status', 1)
+            ->whereNull('channels.deleted_at')
+            ->leftJoin('languages', 'channels.channel_language', '=', 'languages.id')
+            ->get([
+                'channels.genres',
+                'languages.id as language_id',
+                'languages.title as language_title'
+            ]);
+
+        $genreLanguageMap = [];
+        $allLanguages = [];
+
+        foreach ($channels as $channel) {
+            // Split and clean genres
+            $genres = array_filter(array_map('trim', explode(',', $channel->genres ?? '')));
+
+            if (!$channel->language_id || !$channel->language_title) {
+                continue;
+            }
+
+            // Collect ALL unique languages for "All"
+            if (!collect($allLanguages)->contains('id', $channel->language_id)) {
+                $allLanguages[] = [
+                    'id'    => $channel->language_id,
+                    'title' => $channel->language_title,
+                ];
+            }
+
+            foreach ($genres as $genre) {
+                if (!isset($genreLanguageMap[$genre])) {
+                    $genreLanguageMap[$genre] = [];
+                }
+
+                if (!collect($genreLanguageMap[$genre])->contains('id', $channel->language_id)) {
+                    $genreLanguageMap[$genre][] = [
+                        'id'    => $channel->language_id,
+                        'title' => $channel->language_title,
+                    ];
+                }
+            }
+        }
+
+        // Convert to required array format
+        $finalResult = [];
+
+        // Add "All" first
+        $finalResult[] = [
+            'genre'     => 'All',
+            'languages' => $allLanguages
+        ];
+
+        // Now add other genres
+        foreach ($genreLanguageMap as $genre => $languages) {
+            $finalResult[] = [
+                'genre'     => $genre,
+                'languages' => $languages
+            ];
+        }
+
+        return response()->json([
+            'status' => true,
+            'data'   => $finalResult
+        ]);
+    }
+
+
+    
+    public function getAllLiveTV(Request $request){
+        $user_id = $this->get_user_id();
+        
+        $post = json_decode(file_get_contents('php://input', 'r'));
+        
+        $genre = $post->genere;
+            
+        $languageId = $post->languageId;
+
+        $is_valid = $this->checkDomainPermission('live_channels');
+
+    
+
+        // Start query with join
+        $query = Channel::where('channels.status', 1)            
+            ->whereNull('channels.deleted_at')
+
+            ->leftJoin('languages', 'channels.channel_language', '=', 'languages.id')
+            ->select(
+                'channels.*',
+                'languages.id as channel_language_id',
+                'languages.title as channel_language_title'
+            );
+        
+        if ($is_valid && $is_valid->original['status']) {
+            $permit_channels = $is_valid->original['channels'];
+                        
+            if ($permit_channels[0]) {                  
+                $query = $query->whereIn('channels.id', $permit_channels);
+            }
+        }
+    
+        // ✅ Genre Filter (from route param)
+        if (!empty($genre)) {
+            // Get all genres to validate
+            $channel_genres = Channel::where('status', 1)->pluck('genres');
+            $genresList = collect($channel_genres)
+                ->filter()
+                ->flatMap(fn($g) => explode(',', $g))
+                ->map(fn($g) => trim($g))
+                ->unique()
+                ->values()
+                ->all();
+    
+            if (in_array($genre, $genresList)) {
+                $query->where('channels.genres', 'like', '%' . $genre . '%');
+            } else {
+                return response()->json([]); // invalid genre
+            }
+        }
+    
+        // ✅ Language Filter (from route param)
+        if (!empty($languageId) && is_numeric($languageId)) {
+            $query->where('languages.id', $languageId);
+        }
+    
+        // Pagination logic
+        if (isset($_GET['page']) && is_numeric($_GET['page'])) {
+            $page = (int) $_GET['page'];
+            $limit = isset($_GET['records']) && is_numeric($_GET['records']) ? (int) $_GET['records'] : 10;
+    
+            $channels = $query->paginate($limit, ['*'], 'page', $page);
+            return response()->json($channels->items());
+        } else {
+            if (isset($_GET['records']) && $_GET['records'] > 0) {
+                $channels = $query->limit($_GET['records'])->get();
+            } else {
+                $channels = $query->get();
+            }
+            return response()->json($channels);
+        }
+    }
+
+
+    // 22 August 2025
+
+    public function getWatchList(Request $request){
+        $user_id = $this->get_user_id();
+        
+        $post = json_decode(file_get_contents('php://input', 'r'));
+
+        $module = $post->module;
+        $ids = explode(',',$post->content_ids);
+
+        
+        $data = DB::table($module)->whereIn('id', $ids)->where('status', 1)->get();
+
+        if (count($data) > 0) {            
+            print_r(json_encode([
+                'status' => true,
+                'data' => $data
+            ]));
+            exit;
+        }
+        else{
+            print_r(json_encode([
+                'status' => false,
+                'message' => 'No Data Found !'
+            ]));
+            exit;
+        }        
+    }
+
+    // 27 Aug
+
+    public function showAbove18(){
+        $user_id = $this->get_user_id();
+
+        if ($user_id) {            
+            $user = ClientUser::where('id', $user_id)->first();
+
+            // print_r(json_encode($user)); exit;
+            $above18_pin = $user->over18_pin;
+    
+            if (!$above18_pin || $above18_pin == null) {                        
+                return response()->json([
+                    'status' => false,
+                    'message' => 'No Access for Above 18 Content'                
+                ]);
+            }
+            else{
+                return response()->json([
+                    'status' => true,
+                    'above18_pin' => $above18_pin
+                ]); 
+            }
+        }
+        else{
+            return response()->json([
+                'status' => false,
+                'message' => 'Invalid Auth-key'
+            ]); 
+        }
+
+    }
+
+    public function getSearchCategoryList(Request $request){
+        $user_id = $this->get_user_id();
+
+        $post = json_decode(file_get_contents('php://input', 'r'));
+
+        $keywords = $module = $post->keywords;
+        
+        $data = [
+            // ['table' => 'tv_channels', 'column' => 'name'],
+            // ['table' => 'tv_channels_pak', 'column' => 'name'],
+            // ['table' => 'kids_channel', 'column' => 'name'],
+            // ['table' => 'rel_channels', 'column' => 'name'],
+            ['table' => 'movies', 'column' => 'name'],
+            ['table' => 'web_series', 'column' => 'name'],
+            ['table' => 'channels', 'column' => 'channel_name'],
+            ['table' => 'tv_shows', 'column' => 'name'],
+            ['table' => 'tv_shows_pak', 'column' => 'name'],
+            ['table' => 'kids_shows', 'column' => 'name'],
+            ['table' => 'rel_shows', 'column' => 'title'],
+            ['table' => 'sports_categories', 'column' => 'title'],
+            ['table' => 'sports_tournaments', 'column' => 'title'],
+            ['table' => 'stage_shows_pak', 'column' => 'name'],
+            ['table' => 'laughter_show', 'column' => 'name'],
+        ];
+
+        $data_to_send = [];
+
+        if (isset($_GET['page']) && is_numeric($_GET['page'])) {
+            $page = (int) $_GET['page'];
+            $limit = isset($_GET['records']) && is_numeric($_GET['records']) ? (int) $_GET['records'] : 10;                
+        }
+        else{
+            $page = 1;
+            $limit = 10;
+        }
+        
+        foreach ($data as $key => $item) {
+            $query = DB::table($item['table']);
+
+            if (!empty($keywords)) {
+                $query->where($item['column'], 'like', "%{$keywords}%");
+            }
+
+            
+
+            $results = $query->paginate($limit, ['*'], 'page', $page);
+
+            $data_to_send = array_merge($data_to_send, $results->items());
+        }
+
+        shuffle($data_to_send);
+
+        if (!empty($data_to_send)) {
+            print_r(json_encode($data_to_send));
+            exit;
+        }
+        else{
+            print_r(json_encode([
+                'status' => false,
+                'message' => 'No Data Found !'
+            ]));
+            exit;
+        }
+
+    }
+
+
+    public function updateUserHistory(Request $request){
+        $user_id = $this->get_user_id();
+
+        $data_user = ClientUser::where('id','=',$user_id)->first();
+        if (!$data_user) {
+            print_r(json_encode([
+                'status' => false,
+                'message' => 'Invalid User'
+            ]));
+            exit;
+        }
+        else{
+            $created_by = $data_user ? $data_user->created_by : 0;  // id
+            $creater = User::where('id',$created_by)->first();
+
+            $plans = UserPlanDetails::where(['user_id'=>$data_user->id,'status'=>1])->whereDate('plan_end_date','>=',date('Y-m-d'))->orderBy('id','desc')->get();
+
+            if (count($plans) == 0) {
+                $is_update = $this->updatePlan($data_user, $creater);
+
+                if (!$is_update) {
+                    print_r(json_encode(array(
+                        'logout ' => true,
+                        'planExpired' => true,
+                        'msg' => 'You have not active plan. Kindly recharge your account.'
+                    )));
+                    exit;
+                }
+            }
+
+        }
+
+        $post = json_decode(file_get_contents('php://input', 'r'));
+
+        $now = time();  
+
+        // formatted datetime   
+        $server_time = date("Y-m-d H:i:s", $now);
+
+
+        // Update user history in the database
+        // You can use the $user_id and $server_time variables here
+        $user = DB::table('user_history')->where('user_id', $request->user_id)->get();
+
+        if ($user) {
+            DB::table('user_history')
+                ->where('user_id', $request->user_id)
+                ->update(['status' => 0]);                                
+        }        
+
+        $new_entry = DB::table('user_history')->insert([
+            'user_id' => $post->user_id,
+            'content_type' => $post->content_type, //
+            'event_id' => $post->event_id,
+            'event_title' => $post->event_title, //
+            'url' => $post->url,
+            'category_id' => $post->category_id ?? null,            
+            'status' => 1,
+            'server_time' => $server_time
+        ]);
+
+        if ($new_entry) {
+            print_r(json_encode([
+                'status' => true,
+                'message' => 'User history updated successfully'
+            ]));
+            exit;
+        } else {
+            print_r(json_encode([
+                'status' => false,
+                'message' => 'Failed to update user history'
+            ]));
+            exit;
+        }
+    }
+
+
+    public function checkExpiryPlan(Request $request){
+        $user_id = $this->get_user_id();
+        $plan = UserPlanDetails::where(['user_id'=>$user_id,'status'=>1])->orderBy('id','desc')->first(); //latest plan
+        $expiry_date = null;
+        
+        if ($plan) {
+            $expiry_date = $plan->plan_end_date;   //2025-06-21 19:24:19
+
+            // check is difference is more than 3 or not
+            $date1 = new \DateTime();
+            $date2 = new \DateTime($expiry_date);    
+            $interval = $date1->diff($date2);
+            $days = (int)$interval->format('%r%a'); // %r to get the sign
+
+            $data_user = ClientUser::where('id','=',$user_id)->first();   
+            $created_by = $data_user->created_by;
+
+            $domain = AppDomainContent::where('admin_id', $created_by)->first()->domain;
+
+            $domain_content = $this->getDomainData($created_by,$domain);
+
+
+            if ($days <= 3 && $days >= 0) {
+
+                $created_by = $data_user ? $data_user->created_by : 0;  // id
+                $creater = User::where('id',$created_by)->first();
+
+                $last_plan = UserPlanDetails::where(['user_id'=>$data_user->id])->orderBy('id','desc')->first();
+                $plan_id = $last_plan ? $last_plan->plan_id : 0;
+
+                $current_user_amount = $data_user->current_amount ?? 0;
+
+                $plan_details = null;
+
+                if ($creater->role == 2) {
+                    $planDetails = AdminPlan::find($plan_id);
+                }
+                else if ($creater->role == 3) {
+                    $planDetails = ResellerPlan::find($plan_id);
+                }
+
+                $price = $planDetails->total_price;
+
+                if ($current_user_amount < $price) {                    
+                    print_r(json_encode(array(
+                        'plan_expired' => false,   
+                        'plan_will_expire' => true, 
+                        'domain_content' => $domain_content,
+                        'message' => 'Your plan will expire in '.$days.' days. Please recharge your account.'
+                    )));
+                    exit;
+                }
+                else{
+                    print_r(json_encode(array(
+                        'plan_expired' => false,   
+                        'domain_content' => $domain_content,    
+                        'message' => 'Your plan is active.'              
+                    )));
+                    exit;
+                }                                           
+            }
+            elseif ($days < 0) {
+                print_r(json_encode(array(
+                    'plan_expired' => true, 
+                    'plan_will_expire' => false,   
+                    'domain_content' => $domain_content,                
+                    'message' => 'Your plan has expired. Please renew it to continue enjoying our services.'
+                )));
+                exit;
+            }
+            else{
+                print_r(json_encode(array(
+                    'plan_expired' => false,  
+                    'plan_remainig_days' => $days,
+                    'plan_will_expire' => false, 
+                    'domain_content' => $domain_content,
+                    'message' => 'Your plan is active.'           
+                )));
+                exit;
+            }
+        }
+        else{
+            print_r(json_encode(array(
+                'plan_expired' => false,   
+                'message' => 'No Plan Found.'             
+            )));
+            exit;
+        }
+    }
+
+
+    public function getAllLanguages(Request $request){
+        // $user_id = $this->get_user_id();    
+
+        $all_languages = Language::whereNull('deleted_at')->where('status', 1)
+        ->with('slider')
+        ->get();
+
+        if ($all_languages) {
+            
+            print_r(json_encode([
+                'status' => true,
+                'languages' => $all_languages
+            ]));
+            exit;
+        }
+        else{
+            print_r(json_encode([
+                'status' => false,
+                'languages' => []
+            ]));
+            exit;
+        }
+
+
+    }
+
+}

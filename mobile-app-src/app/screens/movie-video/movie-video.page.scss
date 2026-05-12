@@ -1,0 +1,36 @@
+
+  .button-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .button-content ion-icon {
+    font-size: 18px; /* Icon ka size adjust karein */
+    color: #fff;
+  }
+  
+  .button-content ion-label {
+    margin-top: 4px; /* Icon aur text ke beech space */
+    font-size: 10px; /* Text ka size adjust karein */
+    text-transform: capitalize;
+    color: #fff;
+    font-weight: 600;
+  }
+
+  .v-line{
+    color: var(--whiteColor);
+    font-size: 11px;
+    height: 10px;
+    line-height: 8px;
+    padding: 0 5px;
+  }
+  .v-line-text{
+    color: var(--whiteColor);
+    font-size: 12px;
+    // height: 10px;
+    line-height: 15px;
+    padding: 0 5px;
+    text-align: center;
+  }

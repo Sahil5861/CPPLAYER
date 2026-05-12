@@ -1,0 +1,110 @@
+<ion-header mode="md">
+  <ion-toolbar color="blackColor" style="height: 0"> </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="backImage">
+  <div class="pageStyle">
+    <div class="column" style="width: 100%; align-items: center; margin-top: 20px">
+      <img
+        [src]="apiService.getAppLogo()"
+        (error)="apiService.handleImageErrorEvent($event, 'app')"
+        alt="App logo"
+        style="width: 96px; height: 96px; object-fit: contain"
+      />
+      <ion-text
+        class="whiteColor22Bold"
+        style="margin-top: 14px; text-align: center"
+      >
+        {{ apiService.getAppName() }}
+      </ion-text>
+      <ion-text class="grayColor15Regular" style="margin-top: 6px">
+        Login
+      </ion-text>
+    </div>
+    <div class="column" style="width: 100%">
+      <!-- <ion-text class="whiteColor20Medium" style="margin: 0 20px">
+        Enter Login Pin to Continue
+      </ion-text> -->
+
+      <div class="margin20" style="margin-top: 15px">
+        <ion-text class="grayColor15Regular"> Domain </ion-text>
+        <ion-input
+          mode="ios"
+          placeholder="dash.getplaybox.com"
+          class="whiteColor16Medium textfield"
+          inputmode="text"
+          [(ngModel)]="domain"
+        ></ion-input>
+        <div class="divider"></div>
+      </div>
+
+      <div class="margin20" style="margin-top: 15px">
+        <ion-text class="grayColor15Regular"> Pin </ion-text>
+        <ion-input
+          mode="ios"
+          placeholder="Enter Login Pin"
+          class="whiteColor16Medium textfield"
+          inputmode="numeric"
+          [(ngModel)]="loginpin"
+        ></ion-input>
+        <div class="divider"></div>
+      </div>
+
+      <div
+        (click)="login()"
+        class="button center"
+        style="margin-top: 10px"
+      >
+        <ion-button class="whiteColor18Bold border"> Continue </ion-button>
+      </div>
+
+      <!-- <ion-text class="whiteColor15Regular" style="text-align: center">
+        Or Continue with
+      </ion-text> -->
+      <!-- <div class="rowAlignCenter" style="margin: 10px">
+        <div
+          class="rowAlignCenter center smallButton"
+          style="background-color: #4267b2"
+        >
+          <ion-img
+            src="../../../../assets/images/icons/facebook.png"
+            style="width: 24px; height: 24px; object-fit: contain"
+          >
+          </ion-img>
+          <ion-text
+            class="whiteColor16Medium ellipseText"
+            style="-webkit-line-clamp: 1; margin-left: 15px; max-width: 70%"
+          >
+            Facebook
+          </ion-text>
+        </div>
+        <div
+          class="rowAlignCenter center smallButton"
+          style="background-color: var(--whiteColor)"
+        >
+          <ion-img
+            src="../../../../assets/images/icons/google.png"
+            style="width: 24px; height: 24px; object-fit: contain"
+          >
+          </ion-img>
+          <ion-text
+            class="blackColor16Medium ellipseText"
+            style="-webkit-line-clamp: 1; margin-left: 15px; max-width: 70%"
+          >
+            Google
+          </ion-text>
+        </div>
+      </div> -->
+
+      <!-- <ion-text
+        class="whiteColor16Regular"
+        style="text-align: center; margin-bottom: 20px; margin-top: 5px"
+      >
+        Don’t have an account?
+        <ion-text (click)="goTo('auth/register')" class="primaryColor16Regular">
+          Register Now
+        </ion-text>
+      </ion-text> -->
+    </div>
+  </div>
+</ion-content>

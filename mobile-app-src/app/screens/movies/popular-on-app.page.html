@@ -1,0 +1,107 @@
+<ion-header [translucent]="false">
+  <ion-toolbar color="blackColor">
+    <div class="rowAlignCenter" style="margin: 15px">
+      <ion-buttons slot="start">
+        <ion-back-button color="light"></ion-back-button>
+      </ion-buttons>
+      <ion-text class="whiteColor22Bold" style="margin-left: 10px">
+        Movies
+      </ion-text>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+
+  <!-- NETWORK SKELETON -->
+  <div class="network-tabs" *ngIf="showNetworkSkeleton">
+    <div class="net-seg skeleton" *ngFor="let s of [1,2,3,4]" style="width:90px;height:34px"></div>
+  </div>
+
+  <!-- NETWORK TABS -->
+  <div class="network-tabs" *ngIf="!showNetworkSkeleton && networks.length">
+    <div
+      class="net-seg"
+      *ngFor="let net of networks"
+      (click)="selectNetwork(net)"
+      [class.active]="net.id === networkId"
+    >
+      {{ net.name }}
+    </div>
+  </div>
+
+  <!-- SLIDER SKELETON -->
+  <div *ngIf="showSkeleton && !sliders.length" class="skeleton-wrapper">
+    <ion-skeleton-text animated class="skeleton" style="width:100%;aspect-ratio:var(--media-banner-ratio);border-radius:8px"></ion-skeleton-text>
+  </div>
+
+  <!-- SLIDERS -->
+  <div *ngIf="sliders.length" style="margin:10px 0">
+    <swiper-container slides-per-view="1.1" centered-slides="true" space-between="8" loop="true">
+      <swiper-slide *ngFor="let s of sliders">
+        <app-media-card
+          [src]="s.banner"
+          [alt]="s.title || 'Movie banner'"
+          variant="banner"
+        ></app-media-card>
+      </swiper-slide>
+    </swiper-container>
+  </div>
+
+  <!-- GENRE SKELETON -->
+  <div class="genre-tabs" *ngIf="showGenreSkeleton">
+    <div class="seg skeleton" *ngFor="let s of [1,2,3,4,5]" style="width:70px;height:30px"></div>
+  </div>
+
+  <!-- GENRE TABS -->
+  <div class="genre-tabs" *ngIf="!showGenreSkeleton && genres.length">
+    <div class="seg" (click)="onGenreChange('')" [class.active]="selectedGenre === ''">All</div>
+    <div class="seg" *ngFor="let g of genres" (click)="onGenreChange(g)" [class.active]="selectedGenre === g">
+      {{ g }}
+    </div>
+  </div>
+
+  <!-- GRID -->
+  <div style="margin:20px 0">
+    <ion-grid [fixed]="true" style="--ion-grid-columns:3">
+      <ion-row>
+        <ion-col size="1" *ngFor="let item of items; let i = index" style="padding:5px">
+          <div class="media-grid-tile" (click)="goTo(item)">
+            <div class="icon-image-container-list">
+              <app-media-card
+                [src]="item.banner"
+                [alt]="apiService.getDisplayTitle(item) || 'Movie'"
+                variant="poster"
+              ></app-media-card>
+            </div>
+            <div class="media-grid-tile__title">
+              {{ apiService.getDisplayTitle(item) }}
+            </div>
+          </div>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </div>
+
+  <!-- GRID SKELETON (LOAD MORE) -->
+  <div *ngIf="showSkeleton" class="skeleton-wrapper">
+    <ion-grid [fixed]="true" style="--ion-grid-columns:3">
+      <ion-row>
+        <ion-col size="1" *ngFor="let s of [1,2,3,4,5,6,7,8,9,10,11,12]">
+          <ion-skeleton-text animated class="skeleton icon-image-container-list"></ion-skeleton-text>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </div>
+
+  <!-- EMPTY -->
+  <div class="empty-state" *ngIf="!loading && !showSkeleton && items.length === 0">
+    No content found
+  </div>
+
+  <!-- LOAD MORE -->
+  <ion-infinite-scroll threshold="100px" (ionInfinite)="loadMoreItems($event)" [disabled]="lastPage">
+    <ion-infinite-scroll-content loadingSpinner="bubbles"></ion-infinite-scroll-content>
+  </ion-infinite-scroll>
+
+</ion-content>

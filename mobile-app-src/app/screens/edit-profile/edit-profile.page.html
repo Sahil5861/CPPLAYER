@@ -1,0 +1,167 @@
+<ion-header mode="ios" [translucent]="false">
+  <ion-toolbar color="blackColor">
+    <div class="rowAlignCenter" style="margin: 15px; margin-bottom: 10px">
+      <ion-icon
+        (click)="goBack()"
+        name="arrow-back"
+        color="whiteColor"
+        style="font-size: 25px"
+      ></ion-icon>
+      <ion-text class="whiteColor22Bold" style="margin-left: 10px">
+        Edit Profile
+      </ion-text>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div class="center margin20">
+    <div style="position: relative">
+      <ion-img
+        src="../../../assets/images/users/user6.png"
+        class="imageOverflow circle100"
+        style="background-color: var(--primaryColor)"
+      >
+      </ion-img>
+      <div id="open-modal" class="circle30 center editPicCircle">
+        <ion-icon
+          name="camera"
+          color="primaryColor"
+          style="font-size: 17px"
+        ></ion-icon>
+      </div>
+    </div>
+  </div>
+
+  <div class="margin20">
+    <ion-text class="grayColor15Regular"> Full Name </ion-text>
+    <ion-input
+      mode="ios"
+      placeholder="Enater Full Name"
+      class="whiteColor16Medium textfield"
+      [(ngModel)]="fullName"
+    ></ion-input>
+    <div class="divider"></div>
+  </div>
+
+  <div class="margin20">
+    <ion-text class="grayColor15Regular"> Email Address </ion-text>
+    <ion-input
+      mode="ios"
+      placeholder="Enater Email Address"
+      class="whiteColor16Medium textfield"
+      [(ngModel)]="email"
+      inputmode="email"
+    ></ion-input>
+    <div class="divider"></div>
+  </div>
+
+  <div class="margin20">
+    <ion-text class="grayColor15Regular"> Phone Number </ion-text>
+    <ion-input
+      mode="ios"
+      placeholder="Enater Phone Number"
+      class="whiteColor16Medium textfield"
+      [(ngModel)]="phoneNumber"
+      inputmode="numeric"
+    ></ion-input>
+    <div class="divider"></div>
+  </div>
+
+  <div class="margin20">
+    <ion-text class="grayColor15Regular"> Password </ion-text>
+    <ion-input
+      mode="ios"
+      placeholder="Enater Password"
+      class="whiteColor16Medium textfield"
+      [(ngModel)]="password"
+      type="password"
+      clearOnEdit="false"
+    ></ion-input>
+    <div class="divider"></div>
+  </div>
+
+  <ion-modal
+    mode="md"
+    [initialBreakpoint]="1"
+    [breakpoints]="[0, 1]"
+    style="--height: auto; --width: 100%"
+    handle="false"
+    trigger="open-modal"
+    #modal
+  >
+    <ng-template>
+      <div
+        class="column"
+        style="background-color: var(--lightBlackColor); padding: 20px"
+        [style.padding-bottom]="platform.is('ios')?'30px':'20px'"
+      >
+        <ion-text class="whiteColor20SemiBold"> Choose Option </ion-text>
+        <div class="row" style="margin-top: 15px">
+          <div class="columnAlignCenter">
+            <div
+              (click)="modal.dismiss()"
+              class="circle50 center"
+              style="background-color: var(--greenColor)"
+            >
+              <span
+                class="material-icons"
+                style="font-size: 25px; color: var(--whiteColor)"
+              >
+                camera_alt
+              </span>
+            </div>
+            <ion-text class="grayColor16Regular" style="margin-top: 5px">
+              Camera
+            </ion-text>
+          </div>
+
+          <div class="columnAlignCenter" style="margin: 0 50px">
+            <div
+              (click)="modal.dismiss()"
+              class="circle50 center"
+              style="background-color: var(--blueColor)"
+            >
+              <span
+                class="material-icons"
+                style="font-size: 25px; color: var(--whiteColor)"
+              >
+                photo_album
+              </span>
+            </div>
+            <ion-text class="grayColor16Regular" style="margin-top: 5px">
+              Gallery
+            </ion-text>
+          </div>
+
+          <div class="columnAlignCenter">
+            <div
+              (click)="modal.dismiss()"
+              class="circle50 center"
+              style="background-color: var(--woodenColor)"
+            >
+              <span
+                class="material-icons"
+                style="font-size: 25px; color: var(--whiteColor)"
+              >
+                delete
+              </span>
+            </div>
+            <ion-text
+              class="grayColor16Regular"
+              style="margin-top: 5px; line-height: 22px; text-align: center"
+            >
+              Remove<br />photo
+            </ion-text>
+          </div>
+        </div>
+      </div>
+    </ng-template>
+  </ion-modal>
+</ion-content>
+
+<ion-footer style="background: var(--bodyBackColor)">
+  <div (click)="goBack()" class="center button">
+    <ion-text class="whiteColor18Bold"> Save </ion-text>
+  </div>
+</ion-footer>

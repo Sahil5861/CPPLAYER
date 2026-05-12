@@ -1,0 +1,53 @@
+:host {
+  display: block;
+  width: 100%;
+}
+
+.media-card {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border-radius: var(--media-card-radius);
+  background: var(--media-card-background);
+}
+
+.media-card img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  padding: var(--media-card-padding);
+  object-position: center;
+}
+
+.media-card--cover img {
+  object-fit: cover;
+}
+
+.media-card--contain img {
+  object-fit: contain;
+}
+
+.media-card--banner {
+  aspect-ratio: var(--media-banner-ratio);
+}
+
+.media-card--poster {
+  aspect-ratio: var(--media-poster-ratio);
+}
+
+.media-card--square {
+  aspect-ratio: 1 / 1;
+}
+
+.media-card--thumb {
+  aspect-ratio: var(--media-thumb-ratio);
+}
+
+.media-card__spinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+}

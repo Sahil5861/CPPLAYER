@@ -1,0 +1,78 @@
+<ion-header mode="md">
+  <ion-toolbar color="blackColor" style="height: 0"> </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="backImage">
+  <div class="pageStyle">
+    <div class="rowAlignCenter margin20">
+      <ion-icon
+        (click)="goBack()"
+        name="arrow-back"
+        color="whiteColor"
+        style="font-size: 25px"
+      ></ion-icon>
+      <ion-text class="whiteColor22Bold" style="margin-left: 10px">
+        Verification
+      </ion-text>
+    </div>
+    <div class="column" style="width: 100%">
+      <ion-text class="whiteColor20Medium" style="margin: 0 20px">
+        Almost Logged in !
+      </ion-text>
+      <ion-text class="whiteColor16Regular margin20">
+        Enter 4 digit verification code. We just sent you<br />on +91
+        12365474690
+      </ion-text>
+
+      <div class="margin20" style="margin-top: 0px">
+        <ion-input
+          mode="ios"
+          placeholder="Enter Verification Code"
+          class="whiteColor16Medium textfield"
+          inputmode="numeric"
+          [(ngModel)]="otp"
+        ></ion-input>
+        <div class="divider"></div>
+      </div>
+
+      <div
+        (click)="buttonPress()"
+        class="button center"
+        style="margin-top: 10px"
+      >
+        <ion-text class="whiteColor18Bold"> Continue </ion-text>
+      </div>
+    </div>
+  </div>
+
+  <ion-modal
+    mode="md"
+    [isOpen]="showLoadingDialog"
+    (didDismiss)="showLoadingDialog=false"
+    style="
+      --border-radius: 5px;
+      --background: var(--lightBlackColor);
+      --backdrop-opacity: 0.5;
+    "
+  >
+    <ng-template>
+      <div
+        class="center column"
+        style="
+          background-color: var(--lightBlackColor);
+          padding: 20px;
+          padding-top: 30px;
+        "
+      >
+        <ion-spinner
+          name="lines-sharp"
+          color="primaryColor"
+          style="transform: scale(1.5)"
+        ></ion-spinner>
+        <ion-text class="grayColor15Regular" style="margin-top: 20px">
+          Please wait...
+        </ion-text>
+      </div>
+    </ng-template>
+  </ion-modal>
+</ion-content>

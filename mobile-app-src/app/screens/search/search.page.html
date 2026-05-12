@@ -1,0 +1,54 @@
+<ion-header mode="ios" [translucent]="false">
+  <ion-toolbar color="blackColor">
+    <div class="margin20">
+      <ion-text class="whiteColor22Bold">
+        What’d you like to watch today?
+      </ion-text>
+      <div class="rowAlignCenter searchFieldWrapper">
+        <ion-icon name="search" color="primaryColor" style="font-size: 20px">
+        </ion-icon>
+        <ion-input
+          [(ngModel)]="searchText"
+          (ngModelChange)="search()"
+          mode="ios"
+          placeholder="Search Live TV, Movies & Web Series..."
+          class="whiteColor15Regular searchField"
+        >
+        </ion-input>
+      </div>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-grid [fixed]="true" style="--ion-grid-columns: 3;">
+    <ion-row>
+      <ion-col
+        size="1"
+        *ngFor="let item of searchList;let index=index;"
+        style="padding: 5px;">
+        <div class="media-grid-tile" (click)="goToDetail(item)">
+          <div class="icon-image-container-list">
+            <app-media-card
+              [src]="getItemImage(item)"
+              [alt]="apiService.getDisplayTitle(item) || 'Search result'"
+              [variant]="getItemVariant(item)"
+              [fit]="getItemFit(item)"
+              [padding]="getItemPadding(item)"
+              [background]="getItemBackground(item)"
+            ></app-media-card>
+          </div>
+          <div class="media-grid-tile__title">
+            {{ apiService.getDisplayTitle(item) }}
+          </div>
+        </div>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+  <ion-infinite-scroll threshold="100px" (ionInfinite)="loadMore($event)" *ngIf="hasMore">
+    <ion-infinite-scroll-content
+      loadingSpinner="bubbles"
+      loadingText="Loading more results...">
+    </ion-infinite-scroll-content>
+  </ion-infinite-scroll>
+</ion-content>

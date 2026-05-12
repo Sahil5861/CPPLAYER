@@ -1,0 +1,56 @@
+// :host {
+//     ion-content {
+//       display: flex;
+//       justify-content: center;
+//       align-items: center;
+//       height: 100vh;
+//       video {
+//         width: 100%;
+//         height: 100%;
+//       }
+//     }
+//   }
+  
+
+  // .video-container {
+  //   width: 100%;
+  //   height: auto;
+  //   overflow: hidden; /* Ensure no overflow affects sizing */
+  // }
+  
+  // video {
+  //   display: block;
+  //   width: 100%;
+  //   height: auto;
+  // }
+
+  ion-content {
+    --background: #000;
+  }
+  
+  // .video-container {
+  //   display: flex;
+  //   align-items: center;
+  //   justify-content: center;
+  //   width: 100%;
+  //   height: 100vh;
+  //   overflow: hidden;
+  //   background: white;
+  // }
+  
+  // video {
+  //   width: 100%;
+  //   height: auto;
+  //   min-width: 100%;
+  //   min-height: 100%;
+  //   object-fit: cover;
+  //   background: white;
+  // }
+  
+
+  // ion-content {
+  //   --ion-safe-area-top: 0;
+  //   --ion-safe-area-bottom: 0;
+  //   --ion-safe-area-start: 0;
+  //   --ion-safe-area-end: 0;
+  // }

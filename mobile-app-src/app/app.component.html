@@ -1,0 +1,14 @@
+<ion-app>
+  
+    
+  
+  
+  <div class="loading" *ngIf="apiService.viewLoader">Loading&#8230;</div>
+  <ion-router-outlet></ion-router-outlet>
+  
+  <div *ngIf="tap===1" class="exitWrapper">
+    <ion-text class="whiteColor14Regular exitText">
+      Press Back Once Again To Exit!
+    </ion-text>
+  </div>
+</ion-app>

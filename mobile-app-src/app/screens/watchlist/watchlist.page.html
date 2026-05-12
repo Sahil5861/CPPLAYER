@@ -1,0 +1,432 @@
+<ion-header [translucent]="false">
+  <ion-toolbar color="blackColor">
+    <ion-toolbar color="blackColor">
+      <ion-buttons slot="start">
+        <ion-back-button color="light"></ion-back-button>
+      </ion-buttons>
+      <ion-title class="whiteColor22Bold">Watchlist</ion-title>
+    </ion-toolbar>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" ScrollY="false">
+  <div class="tabsWrapper">
+    <ion-segment
+      [scrollable]="true"
+      (ionChange)="onFilterUpdate($event)"
+      mode="md"
+      [value]="selectedTabValue"
+    >
+      <ion-segment-button [value]="tabs[0]">
+        <ion-text
+          style="text-transform: none; font-size: 18px; font-weight: 500"
+        >
+          {{tabs[0]}}
+        </ion-text>
+      </ion-segment-button>
+      <ion-segment-button [value]="tabs[1]">
+        <ion-text
+          style="text-transform: none; font-size: 18px; font-weight: 500"
+        >
+          {{tabs[1]}}
+        </ion-text>
+      </ion-segment-button>
+      <ion-segment-button [value]="tabs[2]">
+        <ion-text
+          style="text-transform: none; font-size: 18px; font-weight: 500"
+        >
+          {{tabs[2]}}
+        </ion-text>
+      </ion-segment-button>
+      <ion-segment-button [value]="tabs[3]">
+        <ion-text
+          style="text-transform: none; font-size: 18px; font-weight: 500"
+        >
+          {{tabs[3]}}
+        </ion-text>
+      </ion-segment-button>
+      <ion-segment-button [value]="tabs[4]">
+        <ion-text
+          style="text-transform: none; font-size: 18px; font-weight: 500"
+        >
+          {{tabs[4]}}
+        </ion-text>
+      </ion-segment-button>
+      <!-- <ion-segment-button [value]="tabs[5]">
+        <ion-text
+          style="text-transform: none; font-size: 18px; font-weight: 500"
+        >
+          {{tabs[5]}}
+        </ion-text>
+      </ion-segment-button> -->
+    </ion-segment>
+  </div>
+
+  <ion-content>
+    <div
+      *ngIf="selectedTabValue===tabs[0] && webseriesWatchlist.length!==0"
+      [style.margin-bottom]="platform.is('ios')?'60px':'40px'"
+      [style.margin-top]="platform.is('ios')?'20px':'15px'"
+    >
+      <div style="margin: 20px 0">
+        <ion-grid [fixed]="true" style="--ion-grid-columns: 3">
+          <ion-row>
+            <ion-col
+              size="1"
+              *ngFor="let item of webseriesWatchlist;let index=index;"
+              style="padding: 5px"
+            >
+              <div class="icon-image-container-list">
+                <ion-img
+                  (click)="goTo(item)"
+                  [src]="item.banner"
+                  class="imageOverflow icon-image"
+                  (ionImgDidLoad)="imageLoaded[index] = true"
+                ></ion-img>
+                <ion-spinner
+                  *ngIf="!imageLoaded[index]"
+                  name="crescent"
+                  style="
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                  "
+                ></ion-spinner>
+              </div>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+      </div>
+    </div>
+
+    <div
+      *ngIf="webseriesWatchlist.length===0 && selectedTabValue===tabs[0]"
+      class="center columnAlignCenter"
+      style="height: 93%"
+    >
+      <ion-icon
+        name="bookmark-outline"
+        color="grayColor"
+        style="font-size: 30px"
+      >
+      </ion-icon>
+      <ion-text class="grayColor18Medium" style="margin-top: 10px">
+        No items in watchlist
+      </ion-text>
+    </div>
+
+    <div
+      *ngIf="selectedTabValue===tabs[1] && tvShowsWatchlist.length!==0"
+      [style.margin-bottom]="platform.is('ios')?'60px':'40px'"
+      [style.margin-top]="platform.is('ios')?'20px':'15px'"
+    >
+      <ion-grid [fixed]="true" style="--ion-grid-columns: 3">
+        <ion-row>
+          <ion-col
+            size="1"
+            *ngFor="let item of tvShowsWatchlist; let index=index;"
+            style="padding: 5px"
+          >
+            <div class="icon-image-container-list">
+              <ion-img
+                (click)="goToTvShows(item)"
+                [src]="item.thumbnail"
+                class="imageOverflow icon-image"
+                (ionImgDidLoad)="imageLoaded[index] = true"
+              ></ion-img>
+              <ion-spinner
+                *ngIf="!imageLoaded[index]"
+                name="crescent"
+                style="
+                  position: absolute;
+                  top: 50%;
+                  left: 50%;
+                  transform: translate(-50%, -50%);
+                "
+              ></ion-spinner>
+            </div>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </div>
+
+    <div
+      *ngIf="tvShowsWatchlist.length===0 && selectedTabValue===tabs[1]"
+      class="center columnAlignCenter"
+      style="height: 93%"
+    >
+      <ion-icon
+        name="bookmark-outline"
+        color="grayColor"
+        style="font-size: 30px"
+      >
+      </ion-icon>
+      <ion-text class="grayColor18Medium" style="margin-top: 10px">
+        No items in watchlist
+      </ion-text>
+    </div>
+
+    <!-- <div
+      *ngIf="selectedTabValue===tabs[2] && webseriesWatchlist.length!==0"
+      [style.margin-bottom]="platform.is('ios')?'60px':'40px'"
+      [style.margin-top]="platform.is('ios')?'20px':'15px'"
+    >
+      <ion-list lines="none" style="background-color: var(--bodyBackColor)">
+        <ion-item-sliding
+          *ngFor="let item of webseriesWatchlist; let i = index"
+          #slidingBooking
+          class="ion-no-padding"
+        >
+          <ion-item lines="none" color="bodyBackColor">
+            <div class="rowAlignCenter card">
+              <div class="center" style="position: relative">
+                <ion-img [src]="item.movieImage" class="imageOverflow poster">
+                </ion-img>
+                <div
+                  class="circle30 center"
+                  style="
+                    position: absolute;
+                    background-color: var(--primaryColor);
+                  "
+                >
+                  <span
+                    class="material-icons"
+                    style="color: var(--whiteColor); font-size: 22px"
+                  >
+                    play_arrow
+                  </span>
+                </div>
+              </div>
+              <div class="column" style="flex: 1; padding: 10px">
+                <ion-text class="whiteColor18Medium">
+                  {{item.movieName}}
+                </ion-text>
+                <ion-text class="grayColor16Regular" style="line-height: 22px">
+                  {{item.movieCategories}}
+                </ion-text>
+                <ion-text class="grayColor16Regular" style="line-height: 22px">
+                  {{item.movieLanguages}}
+                </ion-text>
+                <div
+                  class="rowAlignCenter"
+                  style="justify-content: space-between; margin-top: 5px"
+                >
+                  <ion-text class="whiteColor15Regular" style="flex: 1">
+                    {{item.episodes}} Episodes | size - {{item.memoryTaken}}
+                  </ion-text>
+                  <div class="rowAlignCenter" style="margin-left: 5px">
+                    <span
+                      class="material-icons"
+                      style="color: var(--primaryColor); font-size: 16px"
+                    >
+                      save_alt
+                    </span>
+                    <ion-text class="primaryColor15Medium"> Download </ion-text>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </ion-item>
+          <ion-item-options class="ion-no-padding">
+            <ion-item-option
+              side="end"
+              color="primaryColor"
+              (click)="onDeleteSeries(item.id, slidingBooking)"
+              class="deleteBox"
+            >
+              <div class="center" style="width: 60px">
+                <ion-icon
+                  name="trash"
+                  color="whiteColor"
+                  style="font-size: 25px"
+                ></ion-icon>
+              </div>
+            </ion-item-option>
+          </ion-item-options>
+        </ion-item-sliding>
+      </ion-list>
+    </div> -->
+
+    <!-- <div
+      *ngIf="webseriesWatchlist.length===0 && selectedTabValue===tabs[2]"
+      class="center columnAlignCenter"
+      style="height: 93%"
+    >
+      <ion-icon
+        name="bookmark-outline"
+        color="grayColor"
+        style="font-size: 30px"
+      >
+      </ion-icon>
+      <ion-text class="grayColor18Medium" style="margin-top: 10px">
+        No items in watchlist
+      </ion-text>
+    </div> -->
+
+    <div
+      *ngIf="selectedTabValue===tabs[2] && kidsShowsWatchlist.length!==0"
+      [style.margin-bottom]="platform.is('ios')?'60px':'40px'"
+      [style.margin-top]="platform.is('ios')?'20px':'15px'"
+    >
+      <ion-grid [fixed]="true" style="--ion-grid-columns: 3">
+        <ion-row>
+          <ion-col
+            size="1"
+            *ngFor="let item of kidsShowsWatchlist; let index=index;"
+            style="padding: 5px"
+          >
+            <div class="icon-image-container-list">
+              <ion-img
+                (click)="goToKidsShows(item)"
+                [src]="item.thumbnail"
+                class="imageOverflow icon-image"
+                (ionImgDidLoad)="imageLoaded[index] = true"
+              ></ion-img>
+              <ion-spinner
+                *ngIf="!imageLoaded[index]"
+                name="crescent"
+                style="
+                  position: absolute;
+                  top: 50%;
+                  left: 50%;
+                  transform: translate(-50%, -50%);
+                "
+              ></ion-spinner>
+            </div>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </div>
+
+    <div
+      *ngIf="kidsShowsWatchlist.length===0 && selectedTabValue===tabs[2]"
+      class="center columnAlignCenter"
+      style="height: 93%"
+    >
+      <ion-icon
+        name="bookmark-outline"
+        color="grayColor"
+        style="font-size: 30px"
+      >
+      </ion-icon>
+      <ion-text class="grayColor18Medium" style="margin-top: 10px">
+        No items in watchlist
+      </ion-text>
+    </div>
+
+    
+
+    <div
+      *ngIf="selectedTabValue===tabs[3] && sportsShowsWatchlist.length!==0"
+      [style.margin-bottom]="platform.is('ios')?'60px':'40px'"
+      [style.margin-top]="platform.is('ios')?'20px':'15px'"
+    >
+      <ion-grid [fixed]="true" style="--ion-grid-columns: 3">
+        <ion-row>
+          <ion-col
+            size="1"
+            *ngFor="let item of sportsShowsWatchlist; let index=index;"
+            style="padding: 5px"
+          >
+            <div class="icon-image-container-list">
+              <ion-img
+                (click)="goToSportsShows(item)"
+                [src]="item.logo"
+                class="imageOverflow icon-image"
+                (ionImgDidLoad)="imageLoaded[index] = true"
+              ></ion-img>
+              <ion-spinner
+                *ngIf="!imageLoaded[index]"
+                name="crescent"
+                style="
+                  position: absolute;
+                  top: 50%;
+                  left: 50%;
+                  transform: translate(-50%, -50%);
+                "
+              ></ion-spinner>
+            </div>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </div>
+
+    <div
+      *ngIf="sportsShowsWatchlist.length===0 && selectedTabValue===tabs[3]"
+      class="center columnAlignCenter"
+      style="height: 93%"
+    >
+      <ion-icon
+        name="bookmark-outline"
+        color="grayColor"
+        style="font-size: 30px"
+      >
+      </ion-icon>
+      <ion-text class="grayColor18Medium" style="margin-top: 10px">
+        No items in watchlist
+      </ion-text>
+    </div>
+
+    <div
+      *ngIf="selectedTabValue===tabs[4] && tvShowsPakWatchlist.length!==0"
+      [style.margin-bottom]="platform.is('ios')?'60px':'40px'"
+      [style.margin-top]="platform.is('ios')?'20px':'15px'"
+    >
+      <ion-grid [fixed]="true" style="--ion-grid-columns: 3">
+        <ion-row>
+          <ion-col
+            size="1"
+            *ngFor="let item of tvShowsPakWatchlist; let index=index;"
+            style="padding: 5px"
+          >
+            <div class="icon-image-container-list">
+              <ion-img
+                (click)="goToTvShowsPak(item)"
+                [src]="item.thumbnail"
+                class="imageOverflow icon-image"
+                (ionImgDidLoad)="imageLoaded[index] = true"
+              ></ion-img>
+              <ion-spinner
+                *ngIf="!imageLoaded[index]"
+                name="crescent"
+                style="
+                  position: absolute;
+                  top: 50%;
+                  left: 50%;
+                  transform: translate(-50%, -50%);
+                "
+              ></ion-spinner>
+            </div>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </div>
+
+    <div
+      *ngIf="tvShowsPakWatchlist.length===0 && selectedTabValue===tabs[4]"
+      class="center columnAlignCenter"
+      style="height: 93%"
+    >
+      <ion-icon
+        name="bookmark-outline"
+        color="grayColor"
+        style="font-size: 30px"
+      >
+      </ion-icon>
+      <ion-text class="grayColor18Medium" style="margin-top: 10px">
+        No items in watchlist
+      </ion-text>
+    </div>
+
+    <ion-toast
+      mode="ios"
+      #toast
+      [isOpen]="isToastOpen"
+      message="Removed from watchlist!"
+      [duration]="1000"
+      (didDismiss)="isToastOpen=false;toast.dismiss()"
+      class="whiteColor15Regular"
+    ></ion-toast>
+  </ion-content>
+</ion-content>

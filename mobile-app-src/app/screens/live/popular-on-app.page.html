@@ -1,0 +1,125 @@
+<ion-header mode="ios" [translucent]="false">
+  <ion-toolbar color="blackColor">
+    <div class="rowAlignCenter" style="margin: 15px">
+      <ion-text class="whiteColor22Bold">Live TV</ion-text>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+    <ion-refresher-content
+      pullingText="Pull to refresh"
+      refreshingSpinner="circles"
+    ></ion-refresher-content>
+  </ion-refresher>
+  <!-- 🔹 Language Tabs -->
+  <div class="language-tabs" *ngIf="languages.length">
+    <div
+      class="language-seg"
+      *ngFor="let lang of languages"
+      (click)="onLanguageChange(lang)"
+      [class.active]="selectedLanguage === lang"
+    >
+      <img
+        [src]="lang.logo"
+        height="22"
+        style="border-radius: 50%; margin-right: 8px"
+      />
+      <div>{{ lang.title }}</div>
+    </div>
+  </div>
+
+  <!-- 🔹 Language Sliders -->
+  <div *ngIf="sliders.length" style="margin: 10px 0">
+    <swiper-container
+      slides-per-view="1.1"
+      space-between="8"
+      autoplay-delay="2500"
+      loop="true"
+    >
+      <swiper-slide *ngFor="let s of sliders">
+        <app-media-card
+          [src]="s.banner"
+          [alt]="s.title || 'Live banner'"
+          variant="banner"
+        ></app-media-card>
+      </swiper-slide>
+    </swiper-container>
+  </div>
+
+  <!-- 🔹 Genre Tabs -->
+  <div class="genre-tabs" *ngIf="genres.length">
+    <div
+      class="seg"
+      *ngFor="let category of genres"
+      (click)="onGenreChange(category.genre)"
+      [class.active]="selectedGenre === category.genre"
+    >
+      {{ category.genre }}
+    </div>
+  </div>
+
+  <!-- 🔹 Channel Grid -->
+  <div style="margin: 10px 0">
+    <ion-grid [fixed]="true" style="--ion-grid-columns: 3; padding: 0 5px;">
+      <ion-row>
+        <ion-col
+          size="1"
+          *ngFor="let item of channels; let index = index"
+          style="padding:5px"
+        >
+          <div class="media-grid-tile" (click)="goTo(item)">
+            <div class="icon-image-container-list">
+              <app-media-card
+                [src]="item.channel_logo"
+                [alt]="apiService.getDisplayTitle(item) || 'Live channel'"
+                variant="poster"
+                fit="contain"
+                padding="10px"
+                background="#ffffff"
+              ></app-media-card>
+            </div>
+            <div class="media-grid-tile__title">
+              {{ apiService.getDisplayTitle(item) }}
+            </div>
+          </div>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </div>
+
+
+
+  <!-- 🔹 SKELETON ONLY FOR LOADING MORE -->
+  <div *ngIf="showSkeleton" class="skeleton-wrapper">
+    <ion-grid [fixed]="true" style="--ion-grid-columns: 3; padding: 0 5px;">
+      <ion-row>
+        <ion-col
+          size="1"
+          *ngFor="let s of [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]"
+          style="padding:5px"
+        >
+          <ion-skeleton-text
+            animated
+            class="icon-image-container-list skeleton"
+          ></ion-skeleton-text>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </div>
+
+
+  <!-- 🔹 Infinite Scroll -->
+  <ion-infinite-scroll
+    (ionInfinite)="loadMore($event)"
+    [disabled]="lastPage"
+  >
+    <ion-infinite-scroll-content
+      threshold="100px"
+      loadingSpinner="bubbles"
+      loadingText="Loading more channels..."
+    ></ion-infinite-scroll-content>
+  </ion-infinite-scroll>
+
+</ion-content>

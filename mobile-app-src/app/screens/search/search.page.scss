@@ -1,0 +1,32 @@
+.searchFieldWrapper {
+  background-color: var(--lightBlackColor);
+  padding: 15px 10px;
+  border-radius: 5px;
+  margin-top: 20px;
+}
+
+.searchField {
+  height: 20px;
+  min-height: 20px;
+  --placeholder-color: var(--grayColor);
+  --placeholder-opacity: 1;
+  margin-left: 10px;
+  flex: 1;
+}
+
+.imageOverlay {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  border-radius: 5px;
+  background-color: rgba(0, 0, 0, 0.6);
+}
+
+.searchCategoryWrapper {
+  background-color: var(--lightBlackColor);
+  margin: 5px;
+  padding: 5px 15px;
+  border-radius: 5px;
+}

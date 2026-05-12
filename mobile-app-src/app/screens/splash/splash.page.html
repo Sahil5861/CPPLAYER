@@ -1,0 +1,16 @@
+<ion-content [fullscreen]="true" style="--background: #000;">
+  <div class="center column" style="height: 100%">
+    <ion-img
+      [src]="apiService.getAppLogo()"
+      (error)="apiService.handleImageErrorEvent($event, 'app')"
+      style="width: auto; height: 200px; object-fit: contain"
+    >
+    </ion-img>
+    <ion-text
+      class="primaryColor30BebasRegular"
+      style="margin-top: 10px; letter-spacing: 4px"
+    >
+      {{ apiService.getAppName() }}
+    </ion-text>
+  </div>
+</ion-content>

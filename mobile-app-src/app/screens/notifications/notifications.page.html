@@ -1,0 +1,52 @@
+<ion-header mode="ios" [translucent]="false">
+  <ion-toolbar color="blackColor">
+    <div class="rowAlignCenter" style="margin: 15px; margin-bottom: 10px">
+      <ion-icon
+        (click)="goBack()"
+        name="arrow-back"
+        color="whiteColor"
+        style="font-size: 25px"
+      ></ion-icon>
+      <ion-text class="whiteColor22Bold" style="margin-left: 10px">
+        Notification
+      </ion-text>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div *ngIf="notificationList.length>0">
+    <div
+      *ngFor="let item of notificationList; let i = index;"
+      style="background-color: var(--primaryColor)"
+    >
+      <app-swipe-item [noti]="item" (delete)="removeNotification(item.id)">
+      </app-swipe-item>
+    </div>
+  </div>
+
+  <ion-toast
+    mode="ios"
+    #toast
+    [isOpen]="isToastOpen"
+    message="Notification Dismissed!"
+    [duration]="1000"
+    (didDismiss)="isToastOpen=false;toast.dismiss()"
+    class="whiteColor15Regular"
+  ></ion-toast>
+
+  <div
+    class="center column"
+    style="height: 100%"
+    *ngIf="notificationList.length===0"
+  >
+    <ion-icon
+      name="notifications-off-outline"
+      color="grayColor"
+      style="font-size: 40px"
+    ></ion-icon>
+    <ion-text class="grayColor18Medium" style="margin-top: 10px">
+      No new notification
+    </ion-text>
+  </div>
+</ion-content>

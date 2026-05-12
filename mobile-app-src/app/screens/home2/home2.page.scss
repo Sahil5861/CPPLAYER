@@ -1,0 +1,143 @@
+swiper-slide {
+  display: flex;
+  position: relative;
+
+  flex-direction: column;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+
+  width: 100%;
+  height: 100%;
+
+  font-size: 18px;
+
+  text-align: center;
+  box-sizing: border-box;
+}
+// swiper-slide {
+//   height: 300px;
+//   &.swiper-slide-prev {
+//     height: 250px;
+//     align-self: center;
+//   }
+//   &.swiper-slide-next {
+//     height: 250px;
+//     align-self: center;
+//   }
+// }
+
+.imageOverlay {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  // border-radius: 5px;
+  background-color: rgba(0, 0, 0, 0.6);
+}
+
+.progressSlider {
+  --background: var(--lightGrayColor);
+  --progress-background: var(--primaryColor);
+  position: absolute;
+  top: 62px;
+  left: 5px;
+  right: 5px;
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+  height: 1px;
+  width: 85px;
+  margin: auto;
+}
+
+ion-segment{
+//  width: 100%;
+//  justify-content: space-around;
+ margin-top: 10px;
+ display: block !important;
+ color: #fff;
+}
+ion-segment-button{
+  // min-width: 60px;
+  justify-content: flex-start;
+  min-height: 25px;
+  float: left;
+  width: fit-content;
+  
+}
+ion-segment-button::part(indicator-background) {
+  background: #fff;
+}
+ion-segment-button.md::part(native) {
+  color: #ffffff99;
+}
+.segment-button-checked.md::part(native) {
+  color: #ffffff;
+}
+ion-segment-button.md::part(indicator-background) {
+  height: 0px;
+}
+
+p{
+  color: #fff;
+}
+
+
+
+
+.cat-fixed-container{
+  position: fixed;
+    background: #252a32;
+    bottom: 10px;
+    left: 0;
+    right: 0;
+    margin: auto;
+    width: fit-content;
+    padding: 12px 20px;
+    border-radius: 20px;
+    color: #fff;
+}
+.cat-container{
+  // padding: 10px 0;
+  display: flex;
+  div{
+    padding: 0 5px;
+    border-right: 2px solid #8b8b8b;
+    // line-height: 0;
+    font-size: 14px;
+  }
+  div:last-child{
+    border:none;
+  }
+}
+
+.over18-entry-card {
+  width: 90px;
+  aspect-ratio: 1 / 1;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background:
+    radial-gradient(circle at top, rgba(255, 0, 102, 0.18), transparent 55%),
+    linear-gradient(160deg, #1f2634 0%, #111827 100%);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.over18-entry-card__badge {
+  min-width: 65px;
+  min-height: 65px;
+  padding: 0 10px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #730330 0%, #cc4279 100%);
+  color: var(--whiteColor);
+  font-family: 'Montserrat-Bold';
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: 0.04em;
+}

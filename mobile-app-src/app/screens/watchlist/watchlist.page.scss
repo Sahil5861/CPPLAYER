@@ -1,0 +1,33 @@
+ion-segment-button {
+  --color: var(--grayColor);
+  --color-checked: var(--primaryColor);
+  --indicator-height: 1.5px;
+  --ripple-color: var(--primaryColor);
+  --indicator-color: var(--primaryColor);
+}
+
+.tabsWrapper {
+  background-color: var(--blackColor);
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.15);
+}
+
+.card {
+  background-color: var(--lightBlackColor);
+  // background-color: "#010f29";
+  width: 100%;
+  margin-bottom: 20px;
+  border-radius: 5px;
+}
+
+.poster {
+  width: 100px;
+  height: 100%;
+  border-top-left-radius: 5px;
+  border-bottom-left-radius: 5px;
+}
+
+.deleteBox {
+  margin-bottom: 20px;
+  border-top-right-radius: 5px;
+  border-bottom-right-radius: 5px;
+}

@@ -1,0 +1,12 @@
+.textfield {
+  height: 23px;
+  min-height: 23px;
+  --placeholder-color: var(--grayColor);
+  --placeholder-opacity: 1;
+}
+
+.divider {
+  background-color: var(--grayColor);
+  height: 1px;
+  margin-top: 10px;
+}

@@ -1,0 +1,171 @@
+<ion-header [translucent]="false">
+  <ion-toolbar color="blackColor"> 
+    <ion-buttons slot="start">
+      <ion-back-button color="light"></ion-back-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  
+
+  <div>
+    <ion-img
+          [src]="details.poster"
+          style="width: 100vw; height: auto;"
+        ></ion-img>
+        <ion-text
+        class="primaryColor30BebasRegular"
+        style="flex: 1; letter-spacing: 3px;  position: fixed; top: 10px; left: 17px;"
+      >
+        <img
+          [src]="apiService.getAppLogo()"
+          (error)="apiService.handleImageErrorEvent($event, 'app')"
+          alt="App logo"
+          height="29px"
+          width="47px"
+          style="margin-top: 7px; object-fit: contain"
+        >
+      </ion-text>
+  </div>
+  <ion-button expand="full" class="headerButton"  (click)="playVideo()">
+    <ion-icon name="play"></ion-icon>&nbsp;
+    Watch Now</ion-button>
+    <div class="row margin12" style="justify-content: center; line-height: 26px;">
+      <ion-text class="v-line-text">{{details.name}}</ion-text>
+      <!-- <ion-text
+        class="v-line sideBorder-small"
+      >
+     Action 
+      </ion-text>
+      <ion-text
+        class="v-line sideBorder-small"
+      >
+     Adventure 
+      </ion-text>
+      <ion-text
+        class="v-line sideBorder-small"
+      >
+     Science Fiction 
+      </ion-text>
+      <ion-text
+        class="v-line sideBorder-small"
+      >
+      Coming-of-Age 
+      </ion-text> -->
+    </div>
+    <!-- <ion-row class="margin12">
+      <ion-col class="sideBorder">
+        <ion-text
+        class="v-line"
+      >
+     Action
+      </ion-text>
+      </ion-col>
+      <ion-col class="sideBorder">
+        <ion-text
+        class="v-line"
+      >
+     Adventure 
+      </ion-text>
+      </ion-col>
+      <ion-col class="sideBorder">
+        <ion-text
+        class="v-line"
+      >
+     Science Fiction 
+      </ion-text>
+      </ion-col>
+      <ion-col class="sideBorder">
+        <ion-text
+        class="v-line"
+      >
+      Coming-of-Age
+      </ion-text>
+      </ion-col>
+     
+    </ion-row> -->
+    <p class="font-openregular whiteColor10Regular ion-text-center" style="margin: 20px 10px;" [innerHtml]="details.description">
+      
+    </p>
+    <ion-buttons class="margin12" style="justify-content: center;margin-bottom: 20px;">
+      <ion-button fill="clear" class="icon-button">
+        <div class="button-content" *ngIf="!apiService.checkMovieFromWatchlist(details.id)" (click)="apiService.addToMovieWatchList(details.id)">
+          <ion-icon name="add-outline"></ion-icon>
+          <ion-label class="font-openregular ">Watchlist</ion-label>
+        </div>
+        <div class="button-content" *ngIf="apiService.checkMovieFromWatchlist(details.id)" (click)="apiService.deleteMovieFromWatchlist(details.id)">
+          <ion-icon name="checkmark-outline"></ion-icon>
+          <ion-label class="font-openregular ">Watchlisted</ion-label>
+        </div>
+      </ion-button>
+      <ion-button fill="clear" class="icon-button">
+        <div class="button-content" (click)="share()">
+          <ion-icon name="share-social-outline"></ion-icon>
+          <ion-label>Share</ion-label>
+        </div>
+      </ion-button>
+      <ion-button fill="clear" class="icon-button">
+        <div class="button-content">
+          <ion-icon name="heart-outline"></ion-icon>
+          <ion-label>Rate</ion-label>
+        </div>
+      </ion-button>
+      <ion-button fill="clear" class="icon-button">
+        <div class="button-content">
+          <ion-icon name="download-outline"></ion-icon>
+          <ion-label>Download</ion-label>
+        </div>
+      </ion-button>
+    </ion-buttons>
+  
+  <div>
+    <ion-text class="whiteColor15SemiBold m012" style="display: flex; margin-bottom: 10px;">
+      Movie Video's
+    </ion-text>
+   
+  
+    <div class="horizontalScroll" style="margin: 0 12px;"  >
+      <div *ngFor="let item of videos; let i = index" style="display: inline-block">
+        <div class="icon-image-container" [ngClass]="{'active' : i == choosedVideo}" (click)="choosedVideo = item.id">
+          <ion-img
+            [src]="details.banner"
+            class="icon-image"
+            
+          >
+          </ion-img>
+          
+        </div>
+        <p class="whiteColor10Regular ion-text-center" style="margin-top: 5px;;">URL {{i+1}}</p>
+      </div>
+    </div>
+  </div>
+
+  <div style="">
+    <ion-text class="whiteColor15SemiBold" style="display: flex;margin:10px 0 0 12px;">
+      More Like This
+    </ion-text>
+    <div style="margin:0 0 20px 0">
+      <ion-grid [fixed]="true" style="--ion-grid-columns: 3;">
+        <ion-row>
+          <ion-col
+            size="1"
+            *ngFor="let item of relatedMovies;let index=index;"
+            style="padding: 5px;">
+            <div class="icon-image-container-list">
+            <!-- style="width: 180px; height: 121px; border-radius: 5px;background-color: #fff;margin: auto;padding: 8px;" -->
+              <ion-img
+                (click)="goTo(item)"
+                [src]="item.banner"
+                class="imageOverflow icon-image"
+                (ionImgDidLoad)="imageLoaded[index] = true"
+                ></ion-img>
+                <ion-spinner *ngIf="!imageLoaded[index]" name="crescent" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"></ion-spinner>
+            </div>
+            <!-- <p>{{item.name}}</p> -->
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </div>
+  </div>
+</ion-content>

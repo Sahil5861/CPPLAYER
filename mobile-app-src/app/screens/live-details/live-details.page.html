@@ -1,0 +1,69 @@
+<ion-header [translucent]="true">
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div>
+    <ion-img
+          src="../../../assets/images/newslive.png"
+          style="width: 100%; height: 170px;"
+        ></ion-img>
+        <ion-text
+        class="primaryColor30BebasRegular"
+        style="flex: 1; letter-spacing: 3px;  position: fixed; top: 10px; left: 17px;"
+      >
+        <img
+          [src]="apiService.getAppLogo()"
+          (error)="apiService.handleImageErrorEvent($event, 'app')"
+          alt="App logo"
+          height="29px"
+          width="47px"
+          style="padding-top: 7px; object-fit: contain"
+        >
+      </ion-text>
+  </div>
+  <div>
+    <ion-button expand="full" class="headerButton">
+      <ion-icon name="play"></ion-icon>
+      Watch Now</ion-button>
+      <div class="row margin12" style="justify-content: center; line-height: 26px;">
+        <ion-text
+          style="color: var(--whiteColor); font-size: 11px"
+        >
+       Action | 
+        </ion-text>
+        <ion-text
+          style="color: var(--whiteColor); font-size: 11px"
+        >
+       Adventure 
+        </ion-text>
+      </div>
+      
+      
+  </div>
+  <div class="m012">
+    <ion-text class="whiteColor500 font-montregular" style="font-size: 5px; line-height: 8px;">
+      News 24 is a popular 24-hour Hindi news television channel in India, offering continuous news coverage on a variety of topics including politics, current events, sports, entertainment, and international news. Launched in 2007, it is part of the BAG Network and is known for its in-depth analysis, breaking news updates, and special programming. The channel aims to keep viewers informed with accurate and timely reporting, making it a trusted source of news for millions of Hindi-speaking audiences. News 24 also engages viewers through its digital platforms, extending its reach beyond traditional television.
+    </ion-text>
+  </div>
+  <div class="m012">
+    <ion-text class="whiteColor15SemiBold" style="display: flex; ">
+      More Like This
+    </ion-text>
+    <ion-grid [fixed]="true" style="--ion-grid-columns: 4 ; padding: 0px;">
+      <ion-row>
+        <ion-col
+          size="1"
+          *ngFor="let item of moreLikeMoviesList;let index=index;"
+        >
+          <ion-img
+            [src]="item.movieImage"
+            class="imageOverflow"
+            style="width: 100%; height: 125px; "
+          >
+          </ion-img>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+
+    </div>
+</ion-content>

@@ -1,0 +1,262 @@
+<ion-header mode="ios" [translucent]="false">
+  <ion-toolbar color="blackColor">
+    <div
+      class="rowAlignCenter"
+      style="
+        margin: 15px 20px;
+        margin-bottom: 10px;
+        justify-content: space-between;
+      "
+    >
+      <ion-text class="whiteColor22Bold"> Settings </ion-text>
+      <!-- <ion-text (click)="showLogoutDialog=true" class="primaryColor16SemiBold">
+        Logout
+      </ion-text> -->
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div
+    class="rowAlignCenter margin20"
+    style="
+      margin-top: 20px;
+      padding: 14px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+    "
+  >
+    <img
+      [src]="apiService.getAppLogo()"
+      (error)="apiService.handleImageErrorEvent($event, 'app')"
+      alt="App logo"
+      style="width: 56px; height: 56px; object-fit: contain; border-radius: 10px"
+    />
+    <div class="column" style="margin-left: 14px; flex: 1">
+      <ion-text class="whiteColor20SemiBold">
+        {{ apiService.getAppName() }}
+      </ion-text>
+      <ion-text class="grayColor15Regular" style="margin-top: 4px">
+        App branding is synced from your selected domain.
+      </ion-text>
+    </div>
+  </div>
+
+  <!-- <div class="rowAlignCenter margin20">
+    <ion-img
+      src="../../../assets/images/users/user6.png"
+      class="imageOverflow circle60"
+      style="background-color: var(--primaryColor)"
+    >
+    </ion-img>
+    <div class="column" style="flex: 1; margin-left: 20px">
+      <ion-text class="whiteColor20SemiBold"> Samantha Smith </ion-text>
+      <div class="rowAlignCenter">
+        <ion-img
+          src="../../../assets/images/icons/crown.png"
+          style="width: 20px; height: 20px; object-fit: contain"
+        ></ion-img>
+        <ion-text class="grayColor15Regular" style="margin-left: 10px; flex: 1">
+          Non-Premium
+        </ion-text>
+      </div>
+    </div>
+  </div> -->
+
+  <!-- <div
+    (click)="goTo('edit-profile')"
+    class="rowAlignCenter margin20"
+    style="margin-top: 30px"
+  >
+    <span
+      class="material-icons"
+      style="color: var(--grayColor); font-size: 22px"
+    >
+      person_outline
+    </span>
+    <ion-text class="grayColor18Medium" style="flex: 1; margin-left: 20px">
+      My Profile
+    </ion-text>
+  </div> -->
+
+  <!-- <div (click)="goTo('watchlist')" class="rowAlignCenter margin20">
+    <span
+      class="material-icons"
+      style="color: var(--grayColor); font-size: 22px"
+    >
+      bookmark_outline
+    </span>
+    <ion-text class="grayColor18Medium" style="flex: 1; margin-left: 20px">
+      Watchlist
+    </ion-text>
+  </div> -->
+
+  <!-- <div (click)="goTo('downloads')" class="rowAlignCenter margin20">
+    <span
+      class="material-icons"
+      style="color: var(--grayColor); font-size: 22px"
+    >
+      save_alt
+    </span>
+    <ion-text class="grayColor18Medium" style="flex: 1; margin-left: 20px">
+      Downloads
+    </ion-text>
+  </div> -->
+
+  <!-- <div (click)="goTo('settings')" class="rowAlignCenter margin20">
+    <ion-icon
+      name="settings-outline"
+      color="grayColor"
+      style="font-size: 22px"
+    ></ion-icon>
+    <ion-text class="grayColor18Medium" style="flex: 1; margin-left: 20px">
+      Settings
+    </ion-text>
+  </div> -->
+
+  <div (click)="goTo('terms-and-condition/1')" class="rowAlignCenter margin20">
+    <ion-icon
+      name="document-text-outline"
+      color="grayColor"
+      style="font-size: 22px"
+    ></ion-icon>
+    <ion-text class="grayColor18Medium" style="flex: 1; margin-left: 20px">
+      Terms & Conditions
+    </ion-text>
+  </div>
+
+  <div (click)="goTo('terms-and-condition/2')" class="rowAlignCenter margin20">
+    <ion-icon
+      name="document-text-outline"
+      color="grayColor"
+      style="font-size: 22px"
+    ></ion-icon>
+    <ion-text class="grayColor18Medium" style="flex: 1; margin-left: 20px">
+      Privacy Policy
+    </ion-text>
+  </div>
+
+
+  <div (click)="goTo('watchlist')" class="rowAlignCenter margin20">
+    <ion-icon
+      name="bookmark-outline"
+      color="grayColor"
+      style="font-size: 22px"
+    ></ion-icon>
+    <ion-text class="grayColor18Medium" style="flex: 1; margin-left: 20px">
+     Watchlist
+    </ion-text>
+  </div>
+
+  <div (click)="goTo('support')" class="rowAlignCenter margin20">
+    <span
+      class="material-icons"
+      style="color: var(--grayColor); font-size: 22px"
+    >
+      help_outline
+    </span>
+    <ion-text class="grayColor18Medium" style="flex: 1; margin-left: 20px">
+      Support
+    </ion-text>
+  </div>
+
+ 
+  <div (click)="share()" class="rowAlignCenter margin20">
+    <span
+      class="material-icons"
+      style="color: var(--grayColor); font-size: 22px;width: 22px;"
+    >
+      share_outline
+    </span>
+    <ion-text class="grayColor18Medium" style="flex: 1; margin-left: 20px">
+      Share
+    </ion-text>
+  </div>
+
+   <div (click)="showLogoutDialog=true" class="rowAlignCenter margin20">
+    <span
+      class="material-icons"
+      style="color: var(--primaryColor); font-size: 22px;width: 22px;"
+    >
+      logout_outline
+    </span>
+    <ion-text class="grayColor18Medium" style="flex: 1; margin-left: 20px;color: var(--primaryColor);">
+      Logout
+    </ion-text>
+  </div>
+
+
+  <!-- <div class="horizontalScroll" style="padding: 0 15px; margin-top: 60px">
+    <div *ngFor="let item of premiumBenifitsList" style="display: inline-block">
+      <div style="position: relative; margin: 5px">
+        <ion-img
+          [src]="item.benifitBgImage"
+          class="imageOverflow"
+          style="width: 280px; height: 100px; border-radius: 5px"
+        >
+        </ion-img>
+        <div class="premiumBenifitOverlay">
+          <ion-text class="whiteColor18SemiBold" style="line-height: 25px">
+            {{item.benifit}}
+          </ion-text>
+        </div>
+      </div>
+    </div>
+  </div> -->
+
+  <!-- <div (click)="goTo('subscription')" class="rowAlignCenter premiumButton">
+    <ion-img
+      src="../../../assets/images/icons/crownWithColor.png"
+      style="width: 20px; height: 20px; object-fit: contain"
+    >
+    </ion-img>
+    <ion-text class="whiteColor18Bold" style="margin-left: 20px">
+      Upgrade to Premium
+    </ion-text>
+  </div> -->
+
+  <ion-modal
+    mode="md"
+    [isOpen]="showLogoutDialog"
+    (didDismiss)="showLogoutDialog=false"
+    #modalCtrl
+    style="--border-radius: 5px"
+  >
+    <ng-template>
+      <div
+        style="background-color: var(--lightBlackColor); padding-bottom: 15px"
+      >
+        <div
+          class="center"
+          style="background-color: var(--primaryColor); padding: 10px"
+        >
+          <ion-text class="whiteColor20SemiBold"> Logout </ion-text>
+        </div>
+        <div class="column" style="padding: 20px">
+          <ion-text class="whiteColor16Regular">
+            Are you sure you want to logout?
+          </ion-text>
+          <!-- <ion-text
+            class="whiteColor16Regular"
+            style="margin-top: 5px; line-height: 20px"
+          >
+            This action will clear your downloads and wishlist!
+          </ion-text> -->
+        </div>
+        <div class="row" style="justify-content: flex-end">
+          <ion-text class="primaryColor18Bold" (click)="modalCtrl.dismiss()">
+            Cancel
+          </ion-text>
+          <ion-text
+            (click)="logout()"
+            class="primaryColor18Bold"
+            style="margin: 0 20px"
+          >
+            Logout
+          </ion-text>
+        </div>
+      </div>
+    </ng-template>
+  </ion-modal>
+</ion-content>

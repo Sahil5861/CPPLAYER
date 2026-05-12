@@ -1,0 +1,50 @@
+<ion-header [translucent]="false">
+  <ion-toolbar color="blackColor">
+    <ion-buttons slot="start">
+      <ion-back-button color="light"></ion-back-button>
+    </ion-buttons>
+    <!-- <div class="rowAlignCenter" style="margin: 15px; margin-bottom: 10px"> -->
+      <!-- <ion-icon
+        (click)="goBack()"
+        name="arrow-back"
+        color="whiteColor"
+        style="font-size: 25px"
+      ></ion-icon> -->
+      <ion-title color="light" *ngIf="anyParam == 'See All'">
+        {{catName}}
+      </ion-title>
+      <ion-title color="light" *ngIf="anyParam != 'See All'">
+        {{anyParam}}
+      </ion-title>
+    <!-- </div> -->
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div style="margin:20px 0">
+    <ion-grid [fixed]="true" style="--ion-grid-columns: 3;">
+      <ion-row>
+        <ion-col
+          size="1"
+          *ngFor="let item of items;let index=index;"
+          style="padding: 5px;">
+          <div class="icon-image-container-list">
+            <app-media-card
+              [src]="item.banner"
+              [alt]="item.name || item.title || 'Content item'"
+              variant="poster"
+              (cardClick)="goTo(item)"
+            ></app-media-card>
+          </div>
+          <!-- <p>{{item.name}}</p> -->
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </div>
+  <ion-infinite-scroll (ionInfinite)="loadMoreItems($event)">
+    <ion-infinite-scroll-content
+      loadingSpinner="bubbles"
+      loadingText="Loading more data...">
+    </ion-infinite-scroll-content>
+  </ion-infinite-scroll>
+</ion-content>

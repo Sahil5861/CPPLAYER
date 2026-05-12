@@ -1,0 +1,228 @@
+<ion-header [translucent]="false">
+  <ion-toolbar color="blackColor">
+    <ion-buttons slot="start">
+      <ion-back-button color="light"></ion-back-button>
+    </ion-buttons>
+    <!-- <div class="rowAlignCenter" style="margin: 15px; margin-bottom: 10px"> -->
+      <!-- <ion-icon
+        (click)="goBack()"
+        name="arrow-back"
+        color="whiteColor"
+        style="font-size: 25px"
+      ></ion-icon> -->
+      <ion-title color="light">
+        
+      </ion-title>
+    <!-- </div> -->
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" scrollY="false" style="position: relative">
+  <!-- <ion-toolbar>
+    <ion-back-button></ion-back-button>
+  </ion-toolbar> -->
+  <div style="position: relative">
+    <ion-img
+      src="{{details.banner}}"
+      style="width: 100%; height: auto; object-fit: fill"
+    >
+    </ion-img>
+    <!-- <div class="center posterOverlay">
+      <div
+        
+        class="center circle50"
+        style="background-color: var(--primaryColor)"
+      >
+        <span
+          class="material-icons"
+          style="color: var(--whiteColor); font-size: 30px"
+        >
+          play_arrow
+        </span>
+      </div>
+    </div> -->
+    <!-- <ion-icon
+      (click)="goBack()"
+      name="arrow-back"
+      color="whiteColor"
+      style="font-size: 25px; position: absolute; left: 20px; top: 20px"
+    ></ion-icon> -->
+  </div>
+
+  <ion-content
+    style="--background: transparent; position: absolute; --padding-top: 30px"
+    
+    [style.--padding-bottom]="platform.is('ios')?'350px':'300px'"
+  >
+    <div
+      class="rowAlignCenter"
+      style="margin: 0 20px; justify-content: space-between"
+    >
+      <ion-text
+        class="whiteColor20SemiBold"
+        style="flex: 1; -webkit-line-clamp: 1"
+      >
+      {{details.name}}
+      </ion-text>
+      <div class="rowAlignCenter" style="width: 24px;" (click)="share()">
+        <!-- <span
+          id="openToast"
+          (click)="inBookmark=!inBookmark"
+          class="material-icons"
+          style="color: var(--whiteColor); font-size: 24px; margin-right: 20px"
+        >
+          {{inBookmark?'bookmark':'bookmark_border'}}
+        </span> -->
+        <span
+          class="material-icons"
+          style="color: var(--whiteColor); font-size: 24px;"
+        >
+          share_alt
+        </span>
+      </div>
+    </div>
+
+    <!-- <div
+      class="rowAlignCenter whiteColor18Regular"
+      style="justify-content: space-between; margin: 10px 20px"
+    >
+      <ion-text> 2021 </ion-text>
+      <ion-text> • </ion-text>
+      <ion-text> 13+ </ion-text>
+      <ion-text> • </ion-text>
+      <ion-text
+        class="ellipseText"
+        style="-webkit-line-clamp: 1; max-width: 150px"
+      >
+        Action & Adventure
+      </ion-text>
+      <ion-text> • </ion-text>
+      <ion-text class="ellipseText" style="-webkit-line-clamp: 1">
+        1h 30min
+      </ion-text>
+    </div> -->
+
+    <!-- <div class="rowAlignCenter" style="margin: 5px 20px">
+      <div *ngFor="let item of [1,2,3,4,5]">
+        <ion-icon
+          *ngIf="item<=rating"
+          name="star"
+          color="yellowColor"
+          style="font-size: 15px; margin-right: 5px"
+        ></ion-icon>
+      </div>
+    </div> -->
+
+    <ion-text
+      class="whiteColor15Regular"
+      style="display: flex; text-align: justify; margin: 0px 20px" [innerHtml]="details.description"
+    >
+
+    </ion-text>
+
+    <div>
+      <ion-text
+        class="whiteColor20SemiBold margin20"
+        style="display: flex; margin-bottom: 5px"
+      >
+      Videos
+      </ion-text>
+      <div class="horizontalScroll" style="padding: 0 15px">
+        <div *ngFor="let item of videos" style="display: inline-block" (click)="goTo(item)">
+          <div
+            class="columnAlignCenter"
+            style="margin: 5px; position: relative"
+          >
+            <ion-img
+              [src]="details.banner"
+              class="imageOverflow"
+              style="width: 150px; height: 90px; border-radius: 5px;padding: 8px;background-color: #fff;"
+            ></ion-img>
+            <div class="column center clipOverlay">
+              <ion-text
+                class="whiteColor12Medium"
+                style="top: 0; position: absolute; right: 5px"
+              >
+                {{item.clipViewTime}}
+              </ion-text>
+              <div
+                class="circle30 center"
+                style="background-color: var(--primaryColor)"
+              >
+                <span
+                  class="material-icons"
+                  style="color: var(--whiteColor); font-size: 20px"
+                >
+                  play_arrow
+                </span>
+              </div>
+              <ion-text
+                class="whiteColor14Medium ellipseText"
+                style="-webkit-line-clamp: 1; margin: 0 5px"
+              >
+                {{item.name}}
+              </ion-text>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- <div class="margin20">
+      <ion-text
+        class="whiteColor20SemiBold"
+        style="display: flex; margin-bottom: 10px"
+      >
+        Reviews
+      </ion-text>
+      <div *ngFor="let item of reviewsList" style="margin-bottom: 20px">
+        <div class="row" style="justify-content: space-between">
+          <div class="rowAlignCenter" style="flex: 1">
+            <ion-img
+              [src]="item.userImage"
+              class="imageOverflow"
+              style="width: 50px; height: 50px; border-radius: 25px"
+            ></ion-img>
+            <div class="column reviewDetail">
+              <ion-text
+                class="whiteColor18Medium ellipseText"
+                style="-webkit-line-clamp: 1"
+              >
+                {{item.userName}}
+              </ion-text>
+              <ion-text
+                class="grayColor15Regular ellipseText"
+                style="-webkit-line-clamp: 1"
+              >
+                {{item.reviewDate}}
+              </ion-text>
+            </div>
+          </div>
+          <div *ngFor="let innerItem of [1,2,3,4,5]">
+            <ion-icon
+              name="star"
+              [color]="innerItem<=item.rating?'yellowColor':'grayColor' "
+              style="font-size: 13px; margin-left: 2px"
+            ></ion-icon>
+          </div>
+        </div>
+        <ion-text
+          class="whiteColor14Regular"
+          style="margin-top: 10px; display: flex"
+        >
+          {{item.review}}
+        </ion-text>
+      </div>
+    </div> -->
+  </ion-content>
+
+  <!-- <ion-toast
+    #toast
+    trigger="openToast"
+    mode="ios"
+    [message]="inBookmark?'Added in bookmark':'Removed from bookmark'"
+    [duration]="1000"
+    (didDismiss)="toast.dismiss"
+    class="whiteColor15Regular"
+  ></ion-toast> -->
+</ion-content>

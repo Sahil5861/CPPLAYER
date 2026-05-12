@@ -1,0 +1,225 @@
+<ion-header [translucent]="false">
+  <ion-toolbar color="blackColor">
+    <ion-buttons slot="start">
+      <ion-back-button color="light"></ion-back-button>
+    </ion-buttons>
+    <ion-title color="light"> Episodes <br><small class="primaryColor14SemiBold">{{details.name}}</small> </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div style="max-height: 70vh;overflow: hidden;display: inline-flex;">
+    <ion-img
+      [src]="details.banner"
+      style="width: 100vw; height: auto"
+    ></ion-img>
+    <!-- <ion-text
+      class="primaryColor30BebasRegular"
+      style="
+        flex: 1;
+        letter-spacing: 3px;
+        position: fixed;
+        top: 10px;
+        left: 17px;
+      "
+    >
+      <img
+        src="assets/mobi_img/MFT_A-2_Transparent-BG.png"
+        height="29px"
+        width="47px"
+        style="margin-top: 7px"
+      />
+    </ion-text> -->
+  </div>
+  <!-- <ion-button expand="full" class="headerButton" >
+    <ion-icon name="play"></ion-icon>&nbsp;
+    Watch Now</ion-button> -->
+  <div class="row margin12" style="justify-content: center; line-height: 26px">
+    <ion-text class="v-line-text">{{details.name}}</ion-text>
+    <!-- <ion-text
+        class="v-line sideBorder-small"
+      >
+     Action 
+      </ion-text>
+      <ion-text
+        class="v-line sideBorder-small"
+      >
+     Adventure 
+      </ion-text>
+      <ion-text
+        class="v-line sideBorder-small"
+      >
+     Science Fiction 
+      </ion-text>
+      <ion-text
+        class="v-line sideBorder-small"
+      >
+      Coming-of-Age 
+      </ion-text> -->
+  </div>
+  <!-- <ion-row class="margin12">
+      <ion-col class="sideBorder">
+        <ion-text
+        class="v-line"
+      >
+     Action
+      </ion-text>
+      </ion-col>
+      <ion-col class="sideBorder">
+        <ion-text
+        class="v-line"
+      >
+     Adventure 
+      </ion-text>
+      </ion-col>
+      <ion-col class="sideBorder">
+        <ion-text
+        class="v-line"
+      >
+     Science Fiction 
+      </ion-text>
+      </ion-col>
+      <ion-col class="sideBorder">
+        <ion-text
+        class="v-line"
+      >
+      Coming-of-Age
+      </ion-text>
+      </ion-col>
+     
+    </ion-row> -->
+  <p
+    class="font-openregular whiteColor10Regular ion-text-center"
+    style="margin: 20px 10px"
+    [innerHtml]="details.description"
+  ></p>
+  <ion-buttons
+    class="margin12"
+    style="justify-content: center; margin-bottom: 20px"
+  >
+    <ion-button fill="clear" class="icon-button">
+      <div
+        class="button-content"
+        *ngIf="!apiService.checkWebSeriesFromWatchlist(details.id)"
+        (click)="apiService.addToWebSeriesWatchList(details.id)"
+      >
+        <ion-icon name="add-outline"></ion-icon>
+        <ion-label class="font-openregular">Watchlist</ion-label>
+      </div>
+      <div
+        class="button-content"
+        *ngIf="apiService.checkWebSeriesFromWatchlist(details.id)"
+        (click)="apiService.deleteWebSeriesFromWatchlist(details.id)"
+      >
+        <ion-icon name="checkmark-outline"></ion-icon>
+        <ion-label class="font-openregular">Watchlisted</ion-label>
+      </div>
+    </ion-button>
+    <ion-button fill="clear" class="icon-button">
+      <div class="button-content" (click)="share()">
+        <ion-icon name="share-social-outline"></ion-icon>
+        <ion-label>Share</ion-label>
+      </div>
+    </ion-button>
+    <!-- <ion-button fill="clear" class="icon-button">
+      <div class="button-content">
+        <ion-icon name="heart-outline"></ion-icon>
+        <ion-label>Rate</ion-label>
+      </div>
+    </ion-button> -->
+    <!-- <ion-button fill="clear" class="icon-button">
+        <div class="button-content">
+          <ion-icon name="download-outline"></ion-icon>
+          <ion-label>Download</ion-label>
+        </div>
+      </ion-button> -->
+  </ion-buttons>
+
+  <ion-segment [(ngModel)]="selected" scrollable="true" class="m12">
+    <ion-segment-button
+      *ngFor="let season of seasons;let i = index"
+      [value]="season.Session_Name"
+      (click)="getSeasionEpisodes(season.id,i)"
+    >
+      <ion-text
+        class="whiteColor9SemiBold"
+        style="margin: 0; text-transform: capitalize"
+        >{{season.Session_Name}}</ion-text
+      >
+    </ion-segment-button>
+  </ion-segment>
+
+  <div [ngSwitch]="selected">
+    <ng-container *ngFor="let season of seasons;let i = index">
+      <div *ngSwitchCase="season.Session_Name">
+        <div class="m12">
+          <div
+            *ngFor="let item of season.episodesList"
+            class="list-card"
+            (click)="playVideo(item,season.episodesList)"
+          >
+            <div class="rowAlignCenter">
+              <div class="center" style="position: relative; width: 80px">
+                <app-media-card
+                  [src]="item.episoade_image"
+                  variant="thumb"
+                ></app-media-card>
+              </div>
+              <div class="column" style="flex: 1; margin-left: 5px">
+                <div class="rowAlignCenter">
+                  <ion-text
+                    class="whiteColor12Regular noellipse"
+                    style="flex: 1; -webkit-line-clamp: 1"
+                  >
+                    <h6
+                      class="font-16"
+                      style="
+                        line-height: 20px;
+                        font-size: 13px;
+                        width: 95%;
+                        margin-bottom: 0;
+                      "
+                    >
+                      {{item.Episoade_Name}}
+                    </h6>
+
+                    <div class="description-ep">&nbsp;</div>
+                  </ion-text>
+                  <span
+                    class="material-icons"
+                    style="color: var(--whiteColor); font-size: 22px"
+                  >
+                    play_circle
+                  </span>
+                </div>
+                <ion-text
+                  class="whiteColor12Regular noellipse"
+                  style="
+                    -webkit-line-clamp: 3;
+                    line-height: 16px;
+                    margin-top: 5px;
+                  "
+                >
+                  <!-- {{item.episodeDescription}} -->
+                  <!-- S1 E1 . 17 DEC 1989 .23min -->
+                </ion-text>
+              </div>
+            </div>
+          </div>
+
+          <ion-infinite-scroll
+            threshold="100px"
+            (ionInfinite)="getSeasionEpisodes(season.id, i, $event)"
+            *ngIf="!season.allEpisodesLoaded"
+          >
+            <ion-infinite-scroll-content
+              loadingSpinner="bubbles"
+              loadingText="Loading more episodes..."
+            >
+            </ion-infinite-scroll-content>
+          </ion-infinite-scroll>
+        </div>
+      </div>
+    </ng-container>
+  </div>
+</ion-content>

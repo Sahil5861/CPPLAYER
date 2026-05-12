@@ -1,0 +1,119 @@
+
+.button-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.button-content ion-icon {
+  font-size: 18px; /* Icon ka size adjust karein */
+  color: #fff;
+}
+
+.button-content ion-label {
+  margin-top: 4px; /* Icon aur text ke beech space */
+  font-size: 10px; /* Text ka size adjust karein */
+  text-transform: capitalize;
+  color: #fff;
+  font-weight: 600;
+}
+
+.v-line{
+  color: var(--whiteColor);
+  font-size: 11px;
+  height: 10px;
+  line-height: 8px;
+  padding: 0 5px;
+}
+.v-line-text{
+  color: var(--whiteColor);
+  font-size: 12px;
+  // height: 10px;
+  line-height: 15px;
+  padding: 0 5px;
+  text-align: center;
+}
+.icon-button {
+    padding: 0;
+  }
+  
+  .button-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .button-content ion-icon {
+    font-size: 18px; /* Icon ka size adjust karein */
+    color: #fff;
+  }
+  
+  .button-content ion-label {
+    margin-top: 4px; /* Icon aur text ke beech space */
+    font-size: 6px; /* Text ka size adjust karein */
+    text-transform: capitalize;
+    color: #fff;
+    font-weight: 600;
+  }
+  
+  .m12{
+    margin: 5px 12px;
+  }
+
+  /* Hide scrollbar for Webkit browsers (Chrome, Safari) */
+.m12::-webkit-scrollbar {
+    display: none;
+  }
+  
+  /* Hide scrollbar for Firefox */
+  .m12 {
+    scrollbar-width: none;
+  }
+ 
+  ion-segment{
+    // width: 100%;
+    // justify-content: space-around;
+    margin-top: 10px;
+    display: block;
+    color: #fff;
+   }
+   ion-segment-button{
+     // min-width: 60px;
+     justify-content: flex-start;
+     float: left;
+      width: fit-content;
+     ion-text{
+      font-size: 14px;
+      width: fit-content;
+     }
+     
+   }
+   ion-segment-button::part(indicator-background) {
+     background: #fff;
+     
+   }
+   ion-segment-button::part(native) {
+     color: #9DBBE8CF;
+   }
+   .segment-button-checked::part(native) {
+     color: #ffffff;
+   }
+   ion-segment-button::part(indicator-background) {
+     height: 0px;
+   }
+  .description-ep{
+    line-height: 1rem;
+    overflow: hidden;
+    display: -webkit-box; 
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    max-height: 3.2rem;
+  }
+  .list-card{
+    border-bottom:1px solid #4c4c4c; 
+    &:last-child{
+      border:none;
+    }
+  }

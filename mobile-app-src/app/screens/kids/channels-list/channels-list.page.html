@@ -1,0 +1,151 @@
+<ion-header [translucent]="false">
+  <ion-toolbar color="blackColor">
+    <ion-buttons slot="start">
+      <ion-back-button color="light"></ion-back-button>
+    </ion-buttons>
+    <ion-title color="light">Kids Channels</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+
+  <!-- ================= NETWORK SKELETON ================= -->
+  <div class="network-tabs" *ngIf="showNetworkSkeleton">
+    <div
+      class="net-seg skeleton"
+      *ngFor="let s of [1,2,3,4]"
+      style="width:90px;height:34px;"
+    ></div>
+  </div>
+
+  <!-- ================= NETWORK TABS ================= -->
+  <div class="network-tabs" *ngIf="!showNetworkSkeleton && networks.length">
+    <div
+      class="net-seg"
+      *ngFor="let net of networks"
+      (click)="selectNetwork(net)"
+      [class.active]="net.id === networkId"
+    >
+      {{ net.name }}
+    </div>
+  </div>
+
+  <!-- ================= SLIDER SKELETON ================= -->
+  <div *ngIf="showSkeleton && !sliders.length" class="skeleton-wrapper">
+    <ion-skeleton-text
+      animated
+      class="skeleton"
+      style="width:100%;aspect-ratio:var(--media-banner-ratio);border-radius:8px;"
+    ></ion-skeleton-text>
+  </div>
+
+  <!-- ================= TOP SLIDERS ================= -->
+  <div *ngIf="sliders.length" style="margin: 10px 0">
+    <swiper-container
+      loop="true"
+      autoplay-delay="2500"
+      autoplay-disable-on-interaction="false"
+      slides-per-view="1.1"
+      centered-slides="true"
+      space-between="8"
+      lazy="true"
+    >
+      <swiper-slide *ngFor="let s of sliders">
+        <app-media-card
+          [src]="s.banner"
+          variant="banner"
+        ></app-media-card>
+      </swiper-slide>
+    </swiper-container>
+  </div>
+
+  <!-- ================= GENRE SKELETON ================= -->
+  <div class="genre-tabs" *ngIf="showGenreSkeleton">
+    <div
+      class="seg skeleton"
+      *ngFor="let s of [1,2,3,4,5]"
+      style="width:70px;height:30px;"
+    ></div>
+  </div>
+
+  <!-- ================= GENRE TABS ================= -->
+  <div class="genre-tabs" *ngIf="!showGenreSkeleton && genres.length">
+    <div
+      class="seg"
+      (click)="onChannelChange('')"
+      [class.active]="selectedChannel === ''"
+    >
+      All
+    </div>
+
+    <div
+      class="seg"
+      *ngFor="let channel of channels"
+      (click)="onChannelChange(channel.id)"
+      [class.active]="selectedChannel === channel.id"
+    >
+      {{ channel.name }}
+    </div>
+  </div>
+
+  <!-- ================= GRID CONTENT ================= -->
+  <div style="margin:20px 0">
+    <ion-grid [fixed]="true" style="--ion-grid-columns: 3; padding: 0 15px">
+      <ion-row>
+        <ion-col
+          size="1"
+          *ngFor="let item of items; let index = index"
+        >
+          <div class="media-grid-tile" (click)="goTo(item)">
+            <div class="icon-image-container-list">
+              <app-media-card
+                [src]="item.thumbnail ? item.thumbnail : item.banner"
+                [alt]="apiService.getDisplayTitle(item) || 'Kids content'"
+                variant="poster"
+              ></app-media-card>
+            </div>
+            <div class="media-grid-tile__title">
+              {{ apiService.getDisplayTitle(item) }}
+            </div>
+          </div>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </div>
+
+  <!-- ================= GRID SKELETON (LOAD MORE / RESET) ================= -->
+  <div *ngIf="showSkeleton" class="skeleton-wrapper">
+    <ion-grid [fixed]="true" style="--ion-grid-columns: 3; padding: 0 15px">
+      <ion-row>
+        <ion-col size="1" *ngFor="let s of [1,2,3,4,5,6,7,8,9,10,11,12]">
+          <ion-skeleton-text
+            animated
+            class="skeleton icon-image-container-list"
+            
+          ></ion-skeleton-text>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </div>
+
+  <!-- ================= EMPTY STATE ================= -->
+  <div
+    class="empty-state"
+    *ngIf="!loading && !showSkeleton && items.length === 0"
+  >
+    No content found
+  </div>
+
+  <!-- ================= INFINITE SCROLL ================= -->
+  <ion-infinite-scroll
+    threshold="100px"
+    (ionInfinite)="loadMoreItems($event)"
+    [disabled]="lastPage"
+  >
+    <ion-infinite-scroll-content
+      loadingSpinner="bubbles"
+      loadingText="Loading more data..."
+    ></ion-infinite-scroll-content>
+  </ion-infinite-scroll>
+
+</ion-content>

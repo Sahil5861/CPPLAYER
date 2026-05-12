@@ -1,0 +1,40 @@
+.posterOverlay {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background: linear-gradient(
+    transparent,
+    transparent,
+    transparent,
+    transparent,
+    transparent,
+    transparent,
+    transparent,
+    transparent,
+    transparent,
+    rgba(18, 18, 18, 0.8),
+    rgba(18, 18, 18, 0.97),
+    var(--bodyBackColor)
+  );
+}
+
+.reviewDetail {
+  margin-left: 15px;
+  margin-right: 5px;
+  flex: 1;
+  justify-content: space-between;
+}
+
+.clipOverlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  top: 0;
+  background-color: rgba(0, 0, 0, 0.4);
+  border-radius: 5px;
+  overflow: hidden;
+  white-space: pre-line;
+}

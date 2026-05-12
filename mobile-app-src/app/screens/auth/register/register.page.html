@@ -1,0 +1,74 @@
+<ion-header mode="md">
+  <ion-toolbar color="blackColor" style="height: 0"> </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="backImage">
+  <div class="pageStyle">
+    <div class="rowAlignCenter margin20">
+      <ion-icon
+        (click)="goBack()"
+        name="arrow-back"
+        color="whiteColor"
+        style="font-size: 25px"
+      ></ion-icon>
+      <ion-text class="whiteColor22Bold" style="margin-left: 10px;"> Register </ion-text>
+    </div>
+    <div class="column" style="width: 100%">
+      <div class="margin20">
+        <ion-text class="grayColor15Regular"> Full Name </ion-text>
+        <ion-input
+          mode="ios"
+          placeholder="Enter Full Name"
+          class="whiteColor16Medium textfield"
+          [(ngModel)]="fullName"
+        ></ion-input>
+        <div class="divider"></div>
+      </div>
+
+      <div style="margin: 0 20px">
+        <ion-text class="grayColor15Regular"> Email Address </ion-text>
+        <ion-input
+          mode="ios"
+          placeholder="Enter Email Address"
+          class="whiteColor16Medium textfield"
+          inputmode="email"
+          [(ngModel)]="email"
+        ></ion-input>
+        <div class="divider"></div>
+      </div>
+
+      <div class="margin20">
+        <ion-text class="grayColor15Regular"> Phone Number </ion-text>
+        <ion-input
+          mode="ios"
+          placeholder="Enter Phone Number"
+          class="whiteColor16Medium textfield"
+          inputmode="numeric"
+          [(ngModel)]="phoneNumber"
+        ></ion-input>
+        <div class="divider"></div>
+      </div>
+
+      <div
+        (click)="goTo('auth/verification')"
+        class="button center"
+        style="margin-top: 10px"
+      >
+        <ion-text class="whiteColor18Bold"> Continue </ion-text>
+      </div>
+
+      <ion-text
+        class="whiteColor16Regular"
+        style="text-align: center; margin-bottom: 20px; margin-top: 5px"
+      >
+        Already have an account?
+        <ion-text
+          (click)="goTo('auth/login')"
+          class="primaryColor16Regular"
+        >
+          Login Now
+        </ion-text>
+      </ion-text>
+    </div>
+  </div>
+</ion-content>

@@ -1,0 +1,9 @@
+ion-tab-bar{
+  --background: var(--blackColor);
+  height: 60px;
+}
+
+ion-tab-button{
+  --color:var(--grayColor);
+  --color-selected:var(--primaryColor);
+};

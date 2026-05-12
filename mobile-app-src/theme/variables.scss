@@ -1,0 +1,55 @@
+:root {
+  --ion-color-primary: #ff055f;
+  --primaryColor: #ff055f;
+  --blackColor: #000000;
+  --whiteColor: #ffffff;
+  --grayColor: #949494;
+  --lightGrayColor: #c4c4c4;
+  --bodyBackColor: #121212;
+  --yellowColor: #ffac33;
+  --lightBlackColor: #282828;
+  --greenColor: #009688;
+  --blueColor: #00a7f7;
+  --woodenColor: #dd5a5a;
+  --media-card-radius: 8px;
+  --media-card-surface: #07152c;
+  --media-banner-ratio: 16 / 9;
+  --media-poster-ratio: 4 / 2.5;
+  --media-thumb-ratio: 16 / 10;
+  --media-logo-padding: 10px;
+  --media-grid-gap: 10px;
+}
+
+.ion-color-primaryColor {
+  --ion-color-base: var(--primaryColor);
+}
+.ion-color-blackColor {
+  --ion-color-base: var(--blackColor);
+}
+.ion-color-whiteColor {
+  --ion-color-base: var(--whiteColor);
+}
+.ion-color-grayColor {
+  --ion-color-base: var(--grayColor);
+}
+.ion-color-lightGrayColor {
+  --ion-color-base: var(--lightGrayColor);
+}
+.ion-color-bodyBackColor {
+  --ion-color-base: var(--bodyBackColor);
+}
+.ion-color-yellowColor {
+  --ion-color-base: var(--yellowColor);
+}
+.ion-color-lightBlackColor {
+  --ion-color-base: var(--lightBlackColor);
+}
+.ion-color-greenColor {
+  --ion-color-base: var(--greenColor);
+}
+.ion-color-blueColor {
+  --ion-color-base: var(--blueColor);
+}
+.ion-color-woodenColor {
+  --ion-color-base: var(--woodenColor);
+}

@@ -1,0 +1,121 @@
+<ion-header [translucent]="false">
+  <ion-toolbar color="blackColor">
+    <ion-buttons slot="start">
+      <ion-back-button color="light"></ion-back-button>
+    </ion-buttons>
+    <ion-title color="light">{{ networkName }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+
+  <!-- ================= GENRE SKELETON ================= -->
+  <div class="genre-tabs" *ngIf="showGenreSkeleton">
+    <div
+      class="seg skeleton"
+      *ngFor="let s of [1,2,3,4,5]"
+      style="width:70px;height:30px"
+    ></div>
+  </div>
+
+  <!-- ================= GENRE TABS ================= -->
+  <div class="genre-tabs" *ngIf="!showGenreSkeleton && genres.length">
+    <div
+      class="seg"
+      (click)="onGenreChange('')"
+      [class.active]="selectedGenre === ''"
+    >
+      All
+    </div>
+
+    <div
+      class="seg"
+      *ngFor="let category of genres"
+      (click)="onGenreChange(category)"
+      [class.active]="selectedGenre === category"
+    >
+      {{ category }}
+    </div>
+  </div>
+
+  <!-- ================= SLIDER SKELETON ================= -->
+  <div *ngIf="showSkeleton && !sliders.length" class="skeleton-wrapper">
+    <ion-skeleton-text
+      animated
+      class="skeleton"
+      style="width:100%;aspect-ratio:var(--media-banner-ratio);border-radius:8px"
+    ></ion-skeleton-text>
+  </div>
+
+  <!-- ================= TOP SLIDERS ================= -->
+  <div *ngIf="sliders.length" style="margin:10px 0">
+    <swiper-container
+      loop="true"
+      autoplay-delay="2000"
+      slides-per-view="1.1"
+      centered-slides="true"
+      space-between="8"
+    >
+      <swiper-slide *ngFor="let s of sliders">
+        <app-media-card
+          [src]="s.banner"
+          [alt]="s.title || 'Network banner'"
+          variant="banner"
+        ></app-media-card>
+      </swiper-slide>
+    </swiper-container>
+  </div>
+
+  <!-- ================= GRID CONTENT ================= -->
+  <div style="margin:20px 0">
+    <ion-grid [fixed]="true" style="--ion-grid-columns:3">
+      <ion-row>
+        <ion-col
+          size="1"
+          *ngFor="let item of items; let i = index"
+          style="padding:5px"
+        >
+          <div class="media-grid-tile" (click)="checktype(item)">
+            <div class="icon-image-container-list">
+              <app-media-card
+                [src]="item.thumbnail || item.banner || apiService.getContentFallbackImage()"
+                [alt]="apiService.getDisplayTitle(item) || 'Content item'"
+                variant="poster"
+              ></app-media-card>
+            </div>
+            <div class="media-grid-tile__title">
+              {{ apiService.getDisplayTitle(item) }}
+            </div>
+          </div>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </div>
+
+  <!-- ================= GRID SKELETON (LOAD MORE / RESET) ================= -->
+  <div *ngIf="showSkeleton" class="skeleton-wrapper">
+    <ion-grid [fixed]="true" style="--ion-grid-columns:3">
+      <ion-row>
+        <ion-col size="1" *ngFor="let s of [1,2,3,4,5,6,7,8,9,10,11,12]">
+          <ion-skeleton-text
+            animated
+            class="skeleton icon-image-container-list"
+          ></ion-skeleton-text>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </div>
+
+  <!-- ================= LOAD MORE ================= -->
+  <ion-infinite-scroll
+    (ionInfinite)="loadMoreItems($event)"
+    [disabled]="lastPage"
+  >
+    <ion-infinite-scroll-content
+      threshold="100px"
+      loadingSpinner="bubbles"
+      loadingText="Loading more data..."
+    ></ion-infinite-scroll-content>
+  </ion-infinite-scroll>
+
+</ion-content>

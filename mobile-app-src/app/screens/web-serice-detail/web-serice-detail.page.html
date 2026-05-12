@@ -1,0 +1,168 @@
+<ion-header [translucent]="true">
+  <ion-toolbar color="blackColor" style="height: 0"> </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" scrollY="false" style="position: relative">
+  <div style="position: relative">
+    <ion-img
+      src="../../../assets/images/popularWebSeries/series.png"
+      style="width: 100%; height: 450px; object-fit: fill"
+    >
+    </ion-img>
+    <div class="center posterOverlay">
+      <div
+        (click)="goTo('episodes')"
+        class="center circle50"
+        style="background-color: var(--primaryColor)"
+      >
+        <span
+          class="material-icons"
+          style="color: var(--whiteColor); font-size: 30px"
+        >
+          play_arrow
+        </span>
+      </div>
+    </div>
+    <ion-icon
+      (click)="goBack()"
+      name="arrow-back"
+      color="whiteColor"
+      style="font-size: 25px; position: absolute; left: 20px; top: 20px"
+    ></ion-icon>
+  </div>
+
+  <ion-content
+    style="--background: transparent; position: absolute; --padding-top: 120px"
+    [style.top]="platform.is('ios')?'340px':'300px'"
+    [style.--padding-bottom]="platform.is('ios')?'350px':'300px'"
+  >
+    <div
+      class="rowAlignCenter"
+      style="margin: 0 20px; justify-content: space-between"
+    >
+      <ion-text
+        class="whiteColor20SemiBold"
+        style="flex: 1; -webkit-line-clamp: 1"
+      >
+        Squid Game
+      </ion-text>
+      <div class="rowAlignCenter">
+        <span
+          id="openToast"
+          (click)="inBookmark=!inBookmark"
+          class="material-icons"
+          style="color: var(--whiteColor); font-size: 24px; margin-right: 20px"
+        >
+          {{inBookmark?'bookmark':'bookmark_border'}}
+        </span>
+        <span
+          class="material-icons"
+          style="color: var(--whiteColor); font-size: 24px"
+        >
+          save_alt
+        </span>
+      </div>
+    </div>
+
+    <ion-text class="whiteColor18Regular" style="margin: 10px 20px">
+      2021 • 18+ • Tv Drama
+    </ion-text>
+
+    <div class="rowAlignCenter" style="margin: 5px 20px">
+      <div *ngFor="let item of [1,2,3,4,5]">
+        <ion-icon
+          *ngIf="item<=rating"
+          name="star"
+          color="yellowColor"
+          style="font-size: 15px; margin-right: 5px"
+        ></ion-icon>
+      </div>
+    </div>
+
+    <ion-text
+      class="whiteColor15Regular"
+      style="display: flex; text-align: justify; margin: 0px 20px"
+    >
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vitae ac, eros
+      platea elit mi, vel consectetur congue neque. Mattis nisl est euismod
+      elementum orci integer aliquam dictumst.
+    </ion-text>
+
+    <div>
+      <ion-text
+        class="whiteColor20SemiBold margin20"
+        style="display: flex; margin-bottom: 5px"
+      >
+        Star Cast
+      </ion-text>
+      <div class="horizontalScroll" style="padding: 0 15px">
+        <div *ngFor="let item of starCastList" style="display: inline-block">
+          <div class="columnAlignCenter" style="margin: 5px">
+            <ion-img
+              [src]="item.starCastImage"
+              class="imageOverflow"
+              style="width: 86px; height: 86px; border-radius: 5px"
+            ></ion-img>
+            <ion-text class="whiteColor15Regular ellipseText starCastName">
+              {{item.starCastName}}
+            </ion-text>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="margin20">
+      <ion-text class="whiteColor20SemiBold" style="display: flex; margin-bottom: 10px">
+        Reviews
+      </ion-text>
+      <div *ngFor="let item of reviewsList" style="margin-bottom: 20px">
+        <div class="row" style="justify-content: space-between">
+          <div class="rowAlignCenter" style="flex: 1">
+            <ion-img
+              [src]="item.userImage"
+              class="imageOverflow"
+              style="width: 50px; height: 50px; border-radius: 25px"
+            ></ion-img>
+            <div class="column reviewDetail">
+              <ion-text
+                class="whiteColor18Medium ellipseText"
+                style="-webkit-line-clamp: 1"
+              >
+                {{item.userName}}
+              </ion-text>
+              <ion-text
+                class="grayColor15Regular ellipseText"
+                style="-webkit-line-clamp: 1"
+              >
+                {{item.reviewDate}}
+              </ion-text>
+            </div>
+          </div>
+          <div *ngFor="let innerItem of [1,2,3,4,5]">
+            <ion-icon
+              name="star"
+              [color]="innerItem<=item.rating?'yellowColor':'grayColor' "
+              style="font-size: 13px; margin-left: 2px"
+            ></ion-icon>
+          </div>
+        </div>
+        <ion-text
+          class="whiteColor14Regular"
+          style="margin-top: 10px; display: flex"
+        >
+          {{item.review}}
+        </ion-text>
+      </div>
+    </div>
+  </ion-content>
+
+  <!-- <ion-toast
+    #toast
+    trigger="openToast"
+    mode="ios"
+    [message]="inBookmark?'Added in bookmark':'Removed from bookmark'"
+    [duration]="1000"
+    (didDismiss)="toast.dismiss"
+    class="whiteColor15Regular"
+  ></ion-toast> -->
+</ion-content>

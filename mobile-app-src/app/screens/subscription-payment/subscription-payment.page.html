@@ -1,0 +1,69 @@
+<ion-header mode="ios" [translucent]="false">
+  <ion-toolbar color="blackColor">
+    <div class="rowAlignCenter" style="margin: 15px; margin-bottom: 10px">
+      <ion-icon
+        (click)="goBack()"
+        name="arrow-back"
+        color="whiteColor"
+        style="font-size: 25px"
+      ></ion-icon>
+      <ion-text class="whiteColor22Bold" style="margin-left: 10px">
+        Subscribe
+      </ion-text>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div class="margin20" style="position: relative">
+    <ion-img
+      src="../../../assets/images/subscribeBg.png"
+      class="imageOverflow"
+      style="width: 100%; height: 112px; border-radius: 5px"
+    >
+    </ion-img>
+    <div class="planOverlay">
+      <ion-text class="whiteColor18Medium"> Starter Pack </ion-text>
+      <div class="rowAlignCenter" style="justify-content: space-between">
+        <ion-text class="whiteColor22Bold"> 3 Month </ion-text>
+        <ion-text class="whiteColor22Bold"> $10.99 </ion-text>
+      </div>
+    </div>
+  </div>
+
+  <div class="margin20" style="margin-top: 25px">
+    <ion-text
+      class="whiteColor20SemiBold"
+      style="margin-bottom: 10px; display: flex"
+    >
+      How’d you like to pay?
+    </ion-text>
+    <div
+      *ngFor="let item of paymentMethodsList;let i=index;"
+      (click)="selectedPaymentMethodIndex=i;goTo('subscription-done')"
+      class="rowAlignCenter card"
+    >
+      <div class="rowAlignCenter" style="flex: 1">
+        <ion-img
+          [src]="item.paymentMethodIcon"
+          style="width: 45px; height: 45px; object-fit: contain"
+        ></ion-img>
+        <ion-text
+          class="whiteColor16Regular"
+          style="flex: 1; margin-left: 15px"
+        >
+          {{item.paymentMethod}}
+        </ion-text>
+      </div>
+      <div
+        class="center radioButton"
+        [style.border-color]="i===selectedPaymentMethodIndex?'var(--primaryColor)':'var(--grayColor)'"
+      >
+        <div
+          *ngIf="i===selectedPaymentMethodIndex"
+          class="radioButtonSelected"
+        ></div>
+      </div>
+    </div>
+  </div>
+</ion-content>

@@ -1,0 +1,138 @@
+@extends('layout.default')
+@section('mytitle', 'sportcategory TvShow')
+@if(isset($tvchannel))
+@section('page', 'TvShow / Update')
+@else
+@section('page', 'TvShow / Add')
+@endif
+
+@section('content')
+<div class="layout-px-spacing">
+    <div class="row layout-top-spacing">
+        <div class="col-xl-12 col-lg-12 col-sm-12 layout-spacing">
+            <div class="widget-content widget-content-area br-6">
+
+                @if(session()->has('message'))
+                <div class="alert alert-success alert-block">
+                    <button type="button" class="close" data-dismiss="alert">×</button>
+                    <strong>{{ session()->get('message') }}</strong>
+                </div>
+                @endif
+
+                @if ($errors->any())
+                <div class="alert alert-danger">
+                    <ul>
+                        @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+                @endif
+
+                <form id="tvchannel-form" method="post" action="{{ route('savesportscategory') }}" enctype="multipart/form-data" novalidate>
+                    @csrf
+                    <input type="hidden" name="id" value="{{ $sportcategory->id ?? '' }}">
+
+                    <div class="form-row">
+                        <!-- Name -->
+                        <div class="col-md-6 mb-4">
+                            <label for="name">Title</label>
+                            <input type="text" class="form-control" id="title" name="title" value="{{ old('title', $sportcategory->title ?? '') }}" required placeholder="Enter Sport Category">
+                            <div class="invalid-feedback">
+                                @error('name') {{ $message }} @enderror
+                            </div>
+                        </div>
+
+                        <!-- Logo -->
+                        {{-- <div class="col-md-6 mb-4">
+                            <label for="logo">Logo</label>
+                            <input type="text" class="form-control" id="logo" name="logo"
+                                placeholder="Enter image path or URL"
+                                value="{{ old('logo', $tvchannel->logo ?? '') }}">
+                            @if(isset($tvchannel) && $tvchannel->logo)
+                                <img src="/{{ $tvchannel->logo }}" width="40" style="margin-top: 5px;" alt="Logo Preview">
+                            @endif
+                            <div class="invalid-feedback">
+                                @error('logo') {{ $message }} @enderror
+                            </div>
+                        </div> --}}
+
+
+
+                        <div class="col-md-6 mb-4">
+                            <label for="name">Order</label>
+                            <input type="number" class="form-control" id="order" name="sports_cat_order" value="{{ old('order', $sportcategory->sports_cat_order ?? $formatted) }}" required placeholder="0-999">
+                            <div class="invalid-feedback">
+                                @error('name') {{ $message }} @enderror
+                            </div>
+                        </div>
+
+                        <!-- Logo -->
+                        <div class="col-md-6 mb-4">
+                            <label for="thumbnail">Logo</label>
+                            <input type="text" class="form-control" id="thumbnail" name="thumbnail" placeholder="Enter image path or URL" value="{{ old('thumbnail', $sportcategory->thumbnail ?? '') }}">
+                            @if(isset($sportcategory) && $sportcategory->thumbnail)
+                                <img src="{{ $sportcategory->thumbnail }}" width="70" style="margin-top: 5px;" alt="Logo Preview">
+                            @endif
+                            <div class="invalid-feedback">
+                                @error('thumbnail') {{ $message }} @enderror
+                            </div>
+                        </div>
+
+                        <div class="col-md-6 mb-4">
+                            <label for="genre">Genres*</label>                            
+                            <select name="genres[]" id="genres" class="form-control select" multiple required>
+                                @foreach ($genres as $genre)
+                                    <option value="{{$genre->title}}"
+                                        @if (isset($sportcategory) && in_array($genre->title, $current_genre)) selected @endif>
+                                        {{$genre->title}}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <div class="invalid-feedback">
+                                @error('genre') {{ $message }} @enderror
+                            </div>
+                        </div>
+
+                        <div class="col-md-6 mb-4">
+                            <label for="genre">Content Networks*</label>                            
+                            <select name="content_networks[]" id="content_networks" class="form-control select" multiple required>
+                                @foreach ($content_networks as $content_network)
+                                    <option value="{{$content_network->id}}"
+                                        @if (isset($sportcategory) && in_array($content_network->id, $current_networks)) selected @endif>
+                                        {{$content_network->name}}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <div class="invalid-feedback">
+                                @error('genre') {{ $message }} @enderror
+                            </div>
+                        </div>
+                        
+                        <!-- Status -->
+                        <div class="col-md-6 mb-4">
+                            <label for="status">Status</label>
+                            <select name="status" id="status" class="form-control">
+                                <option value="1" @if(old('status', $sportcategory->status ?? '') == 1) selected @endif>Active</option>
+                                <option value="0" @if(old('status', $sportcategory->status ?? '') == 0) selected @endif>Inactive</option>
+                            </select>
+                            <div class="invalid-feedback">
+                                @error('status') {{ $message }} @enderror
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-primary submit-fn mt-4" type="submit">
+                        {{ isset($tvchannel) ? 'Update' : 'Add' }}
+                    </button>
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
+
+@section('footer')
+<!-- Custom JS if needed -->
+@endsection

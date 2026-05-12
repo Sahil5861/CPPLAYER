@@ -1,0 +1,68 @@
+<ion-header mode="ios" [translucent]="false">
+  <ion-toolbar color="blackColor">
+    <div class="rowAlignCenter" style="margin: 15px; margin-bottom: 10px">
+      <ion-icon
+        (click)="goBack()"
+        name="arrow-back"
+        color="whiteColor"
+        style="font-size: 25px"
+      ></ion-icon>
+      <ion-text class="whiteColor22Bold" style="margin-left: 10px">
+        Downloads
+      </ion-text>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div *ngFor="let item of downloadsList" class="rowAlignCenter margin20">
+    <div
+      class="center"
+      style="position: relative; margin: 0 5px; overflow: hidden"
+    >
+      <ion-img
+        [src]="item.image"
+        class="imageOverflow"
+        style="width: 150px; height: 90px; border-radius: 5px"
+      >
+      </ion-img>
+      <div
+        class="circle35 center"
+        style="background-color: var(--primaryColor); position: absolute"
+      >
+        <span
+          class="material-icons"
+          style="color: var(--whiteColor); font-size: 24px"
+        >
+          play_arrow
+        </span>
+      </div>
+      <ion-progress-bar
+        [value]="item.watchingPercentage/100"
+        class="progressSlider"
+      >
+      </ion-progress-bar>
+    </div>
+    <div class="column" style="flex: 1; margin-left: 15px">
+      <ion-text
+        class="whiteColor18Medium ellipseText"
+        style="-webkit-line-clamp: 1"
+      >
+        {{item.movieOrWebSeriesName}}
+      </ion-text>
+      <ion-text
+        class="grayColor15Regular ellipseText"
+        style="-webkit-line-clamp: 1"
+      >
+        {{item.watchingTime}} | {{item.episodes}} Episodes |
+        {{item.memoryTaken}}
+      </ion-text>
+      <ion-text
+        class="whiteColor15Regular ellipseText"
+        style="-webkit-line-clamp: 1; margin-top: 2px"
+      >
+        All • {{item.category}} • {{item.languages}}
+      </ion-text>
+    </div>
+  </div>
+</ion-content>

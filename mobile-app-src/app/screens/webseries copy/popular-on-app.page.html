@@ -1,0 +1,36 @@
+<ion-header mode="ios" [translucent]="false">
+  <ion-toolbar color="blackColor">
+    <div class="rowAlignCenter" style="margin: 15px; margin-bottom: 10px">
+      <!-- <ion-icon
+        (click)="goBack()"
+        name="arrow-back"
+        color="whiteColor"
+        style="font-size: 25px"
+      ></ion-icon> -->
+      <ion-text class="whiteColor22Bold" style="margin-left: 10px">
+        Web Series
+      </ion-text>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div style="margin:20px 0">
+    <ion-grid [fixed]="true" style="--ion-grid-columns: 3; padding: 0 15px">
+      <ion-row>
+        <ion-col
+          size="1"
+          *ngFor="let item of pageData;let index=index;"
+        >
+          <ion-img
+            (click)="goTo(item)"
+            [src]="item.poster ? item.poster : item.banner"
+            class="imageOverflow"
+            style="width: 100%; height: 140px; border-radius: 5px"
+          >
+          </ion-img>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </div>
+</ion-content>

@@ -1,0 +1,383 @@
+<ion-header [translucent]="false"></ion-header>
+
+<ion-content [fullscreen]="true">
+  <!-- 🔹 Banner Skeleton -->
+  <div *ngIf="showBannerSkeleton" style="margin: 10px">
+    <ion-skeleton-text animated
+            class="skeleton" style="width: 100%; aspect-ratio: var(--media-banner-ratio); border-radius: 8px"></ion-skeleton-text>
+  </div>
+
+  <!-- 🔹 Banner Slider -->
+  <div *ngIf="!showBannerSkeleton" style="margin-bottom: 10px">
+    <swiper-container
+      [loop]="true"
+      [autoplay]="{ delay: 2000, disableOnInteraction: false }"
+      [initialSlide]="0"
+      [slidesPerView]="1.1"
+      [centeredSlides]="true"
+      [centeredSlidesBounds]="true"
+      [spaceBetween]="5"
+      [lazyPreloadPrevNext]="2"
+    >
+      <swiper-slide
+        *ngFor="let item of bannersList; let i = index"
+        style="border: 1px solid"
+      >
+        <app-media-card
+          [src]="item.banner"
+          [alt]="item.title || 'Banner'"
+          variant="banner"
+          (imageLoad)="bannerLoaded[i] = true"
+          (imageError)="retryBannerLoad(i, item)"
+        ></app-media-card>
+        <ion-text
+          class="primaryColor30BebasRegular"
+          style="
+            flex: 1;
+            letter-spacing: 3px;
+            position: absolute;
+            top: 10px;
+            left: 17px;
+            z-index: 20;
+          "
+        >
+          <!-- <img
+            src="assets/mobi_img/MFT_A-2_Transparent-BG.png"
+            height="47px"
+            style="padding-top: 7px"
+          /> -->
+        </ion-text>
+      </swiper-slide>
+    </swiper-container>
+  </div>
+
+  <ion-refresher
+    slot="fixed"
+    [pullFactor]="0.5"
+    [pullMin]="0"
+    [pullMax]="100"
+    (ionRefresh)="handleRefresh($event)"
+  >
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- 🔹 Content Networks -->
+  <ion-text
+    *ngIf="apiService.showCat('content_network')"
+    class="whiteColor15SemiBold font-openregular bordered-element"
+    style="justify-content: space-between; display: flex; margin: 20px 5px 0 5px"
+  >
+    OTT Apps
+  </ion-text>
+
+  <!-- Network Skeleton -->
+  <div class="horizontalScroll" *ngIf="showNetworkSkeleton && apiService.showCat('content_network')">
+    <div *ngFor="let i of [1,2,3,4,5]" style="display: inline-block">
+      <ion-skeleton-text
+        animated
+        class="skeleton"
+        style="width: 90px; height: 90px; margin: 10px 5px; border-radius: 4px"
+      ></ion-skeleton-text>
+    </div>
+  </div>
+
+  <!-- Network Data -->
+  <div class="horizontalScroll" *ngIf="!showNetworkSkeleton && apiService.showCat('content_network')">
+    <div *ngFor="let item of networks; let i = index" style="display: inline-block; vertical-align: top;">
+      <div class="media-rail-tile" (click)="gotoNetwork(item)">
+        <app-media-card
+          [src]="item.logo"
+          [alt]="apiService.getDisplayTitle(item) || 'Network'"
+          variant="square"
+          fit="contain"
+          padding="5px"
+          background="#ffffff"
+          (imageLoad)="networkLoaded[i] = true"
+          (imageError)="retryNetworkLoad(i, item)"
+        ></app-media-card>
+        <div class="media-grid-tile__title media-grid-tile__title--compact">
+          {{ apiService.getDisplayTitle(item) }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🔹 Religious -->
+  <ion-text
+    *ngIf="apiService.showCat('religious')"
+    class="whiteColor15SemiBold font-openregular bordered-element"
+    style="justify-content: space-between; display: flex; margin: 20px 5px 0 5px"
+  >
+    Religious
+    <ion-text routerLink="/religious/channels-list" class="primaryColor14SemiBold">
+      View All
+    </ion-text>
+  </ion-text>
+
+  <!-- Religious Skeleton -->
+  <div class="horizontalScroll" *ngIf="showReligiousSkeleton && apiService.showCat('religious')">
+    <div *ngFor="let i of [1,2,3,4,5]" style="display: inline-block">
+      <ion-skeleton-text
+        animated
+        class="skeleton"
+        style="width: 90px; height: 90px; margin: 10px 5px; border-radius: 4px"
+      ></ion-skeleton-text>
+    </div>
+  </div>
+
+  <!-- Religious Data -->
+  <div class="horizontalScroll" *ngIf="!showReligiousSkeleton && apiService.showCat('religious')">
+    <div *ngFor="let item of religionChannels; let i = index" style="display: inline-block; vertical-align: top;">
+      <div class="media-rail-tile" (click)="gotoReligious(item)">
+        <app-media-card
+          [src]="item.logo"
+          [alt]="apiService.getDisplayTitle(item) || 'Religious channel'"
+          variant="square"
+          fit="contain"
+          padding="5px"
+          background="#ffffff"
+          (imageLoad)="religiousLoaded[i] = true"
+          (imageError)="retryReligiousLoad(i, item)"
+        ></app-media-card>
+        <div class="media-grid-tile__title media-grid-tile__title--compact">
+          {{ apiService.getDisplayTitle(item) }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🔹 TV Channels -->
+  <ion-text
+    *ngIf="apiService.showCat('tvshow')"
+    class="whiteColor15SemiBold font-openregular bordered-element"
+    style="justify-content: space-between; display: flex; margin: 20px 5px 0 5px"
+  >
+    TV Channels
+    <ion-text routerLink="/tv-channels/channels-list" class="primaryColor14SemiBold">
+      View All
+    </ion-text>
+  </ion-text>
+
+  <!-- TV Channels Skeleton -->
+  <div class="horizontalScroll" *ngIf="showTvSkeleton && apiService.showCat('tvshow')">
+    <div *ngFor="let i of [1,2,3,4,5]" style="display: inline-block">
+      <ion-skeleton-text
+        animated
+        class="skeleton"
+        style="width: 90px; height: 90px; margin: 10px 5px; border-radius: 4px"
+      ></ion-skeleton-text>
+    </div>
+  </div>
+
+  <!-- TV Channels Data -->
+  <div class="horizontalScroll" *ngIf="!showTvSkeleton && apiService.showCat('tvshow')">
+    <div *ngFor="let item of tvChannels; let i = index" style="display: inline-block; vertical-align: top;">
+      <div class="media-rail-tile" (click)="gotoTvChannels(item)">
+        <app-media-card
+          [src]="item.logo"
+          [alt]="apiService.getDisplayTitle(item) || 'TV channel'"
+          variant="square"
+          fit="contain"
+          padding="5px"
+          background="#ffffff"
+          (imageLoad)="tvLoaded[i] = true"
+          (imageError)="retryTvLoad(i, item)"
+        ></app-media-card>
+        <div class="media-grid-tile__title media-grid-tile__title--compact">
+          {{ apiService.getDisplayTitle(item) }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🔹 Kids -->
+  <ion-text
+    *ngIf="apiService.showCat('kids_show')"
+    class="whiteColor15SemiBold font-openregular bordered-element"
+    style="justify-content: space-between; display: flex; margin: 20px 5px 0 5px"
+  >
+    Kids
+    <ion-text routerLink="/kids/channels-list" class="primaryColor14SemiBold">
+      View All
+    </ion-text>
+  </ion-text>
+
+  <!-- Kids Skeleton -->
+  <div class="horizontalScroll" *ngIf="showKidsSkeleton && apiService.showCat('kids_show')">
+    <div *ngFor="let i of [1,2,3,4,5]" style="display: inline-block">
+      <ion-skeleton-text
+        animated
+        class="skeleton"
+        style="width: 90px; height: 90px; margin: 10px 5px; border-radius: 4px"
+      ></ion-skeleton-text>
+    </div>
+  </div>
+
+  <!-- Kids Data -->
+  <div class="horizontalScroll" *ngIf="!showKidsSkeleton && apiService.showCat('kids_show')">
+    <div *ngFor="let item of kids; let i = index" style="display: inline-block; vertical-align: top;">
+      <div class="media-rail-tile" (click)="gotoKids(item)">
+        <app-media-card
+          [src]="item.logo"
+          [alt]="apiService.getDisplayTitle(item) || 'Kids channel'"
+          variant="square"
+          fit="contain"
+          padding="5px"
+          background="#ffffff"
+          (imageLoad)="kidsLoaded[i] = true"
+          (imageError)="retryKidsLoad(i, item)"
+        ></app-media-card>
+        <div class="media-grid-tile__title media-grid-tile__title--compact">
+          {{ apiService.getDisplayTitle(item) }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🔹 Sports -->
+  <ion-text
+    *ngIf="apiService.showCat('sports')"
+    class="whiteColor15SemiBold font-openregular bordered-element"
+    style="justify-content: space-between; display: flex; margin: 20px 5px 0 5px"
+  >
+    Sports
+    <ion-text routerLink="/sports/category-list" class="primaryColor14SemiBold">
+      View All
+    </ion-text>
+  </ion-text>
+
+  <!-- Sports Skeleton -->
+  <div class="horizontalScroll" *ngIf="showSportsSkeleton && apiService.showCat('sports')">
+    <div *ngFor="let i of [1,2,3,4,5]" style="display: inline-block">
+      <ion-skeleton-text
+        animated
+        class="skeleton"
+        style="width: 90px; height: 90px; margin: 10px 5px; border-radius: 4px"
+      ></ion-skeleton-text>
+    </div>
+  </div>
+
+  <!-- Sports Data -->
+  <div class="horizontalScroll" *ngIf="!showSportsSkeleton && apiService.showCat('sports')">
+    <div *ngFor="let item of sportsCategories; let i = index" style="display: inline-block; vertical-align: top;">
+      <div class="media-rail-tile" (click)="gotoSports(item)">
+        <app-media-card
+          [src]="item.thumbnail"
+          [alt]="apiService.getDisplayTitle(item) || 'Sports category'"
+          variant="square"
+          (imageLoad)="sportsLoaded[i] = true"
+          (imageError)="retrySportsLoad(i, item)"
+        ></app-media-card>
+        <div class="media-grid-tile__title media-grid-tile__title--compact">
+          {{ apiService.getDisplayTitle(item) }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🔹 TV Channels (Pakistani) -->
+  <ion-text
+    *ngIf="apiService.showCat('tvshow_pak')"
+    class="whiteColor15SemiBold font-openregular bordered-element"
+    style="justify-content: space-between; display: flex; margin: 20px 5px 0 5px"
+  >
+    TV Channels (Pakistani)
+    <ion-text routerLink="/tv-channels-pak/channels-list" class="primaryColor14SemiBold">
+      View All
+    </ion-text>
+  </ion-text>
+
+  <!-- TV Channels Pak Skeleton -->
+  <div class="horizontalScroll" *ngIf="showPakTvSkeleton && apiService.showCat('tvshow_pak')">
+    <div *ngFor="let i of [1,2,3,4,5]" style="display: inline-block">
+      <ion-skeleton-text
+        animated
+        class="skeleton"
+        style="width: 90px; height: 90px; margin: 10px 5px; border-radius: 4px"
+      ></ion-skeleton-text>
+    </div>
+  </div>
+
+  <!-- TV Channels Pak Data -->
+  <div class="horizontalScroll" *ngIf="!showPakTvSkeleton && apiService.showCat('tvshow_pak')">
+    <div *ngFor="let item of tvChannelsPak; let i = index" style="display: inline-block; vertical-align: top;">
+      <div class="media-rail-tile" (click)="gotoTvChannelsPak(item)">
+        <app-media-card
+          [src]="item.logo"
+          [alt]="apiService.getDisplayTitle(item) || 'Pak TV channel'"
+          variant="square"
+          fit="contain"
+          padding="5px"
+          background="#ffffff"
+          (imageLoad)="pakTvLoaded[i] = true"
+          (imageError)="retryPakTvLoad(i, item)"
+        ></app-media-card>
+        <div class="media-grid-tile__title media-grid-tile__title--compact">
+          {{ apiService.getDisplayTitle(item) }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🔹 Stage Shows (Pakistani) -->
+  <ion-text
+    *ngIf="apiService.showCat('stage_shows')"
+    class="whiteColor15SemiBold font-openregular bordered-element"
+    style="justify-content: space-between; display: flex; margin: 20px 5px 0 5px"
+  >
+    Stage Shows (Pakistani)
+    <ion-text routerLink="/stageshow" class="primaryColor14SemiBold">
+      View All
+    </ion-text>
+  </ion-text>
+
+  <!-- Stage Shows Skeleton -->
+  <div class="horizontalScroll" *ngIf="showStageSkeleton && apiService.showCat('stage_shows')">
+    <div *ngFor="let i of [1,2,3,4,5]" style="display: inline-block">
+      <ion-skeleton-text
+        animated
+        class="skeleton"
+        style="width: 90px; height: 90px; margin: 10px 5px; border-radius: 4px"
+      ></ion-skeleton-text>
+    </div>
+  </div>
+
+  <!-- Stage Shows Data -->
+  <div class="horizontalScroll" *ngIf="!showStageSkeleton && apiService.showCat('stage_shows')">
+    <div *ngFor="let item of stageShowPak; let i = index" style="display: inline-block; vertical-align: top;">
+      <div class="media-rail-tile" (click)="playStage(item)">
+        <app-media-card
+          [src]="item.banner"
+          [alt]="apiService.getDisplayTitle(item) || 'Stage show'"
+          variant="square"
+          (imageLoad)="stageLoaded[i] = true"
+          (imageError)="retryStageLoad(i, item)"
+        ></app-media-card>
+        <div class="media-grid-tile__title media-grid-tile__title--compact">
+          {{ apiService.getDisplayTitle(item) }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <ion-text
+    *ngIf="showOver18Entry"
+    class="whiteColor15SemiBold font-openregular bordered-element"
+    style="justify-content: space-between; display: flex; margin: 20px 5px 0 5px"
+  >
+    Over 18
+  </ion-text>
+
+  <div class="horizontalScroll" *ngIf="showOver18Entry" style="padding-bottom: 20px;">
+    <div style="display: inline-block; vertical-align: top;">
+      <div class="media-rail-tile" (click)="openOver18()">
+        <div class="over18-entry-card" aria-label="18 plus content">
+          <div class="over18-entry-card__badge">18+</div>
+        </div>
+        <div class="media-grid-tile__title media-grid-tile__title--compact">
+          Over 18
+        </div>
+      </div>
+    </div>
+  </div>
+</ion-content>

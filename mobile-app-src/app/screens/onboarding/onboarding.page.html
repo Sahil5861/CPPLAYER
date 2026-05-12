@@ -1,0 +1,72 @@
+<ion-content [fullscreen]="true" scrollY="false">
+  <div>
+    <swiper-container
+      #swiper
+      (slidechange)="slideChangeCall();"
+      [autoplay]="{autoplay:true,disableOnInteraction:false,delay:2800}"
+    >
+      <swiper-slide *ngFor="let item of onboardingScreenList">
+        <div
+          class="column"
+          style="margin: 0 20px; display: flex; justify-content: flex-end"
+          [style.height]="(screenHeight-90)+'px'"
+        >
+          <div class="center column" style="height: 100%">
+            <ion-img
+              [src]="item.onboardingImage"
+              style="width: 80%; height: 300px; object-fit: contain"
+            >
+            </ion-img>
+            <div style="margin-top: 20px">
+              <ion-text
+                class="whiteColor20Medium ellipseText"
+                style="
+                  -webkit-line-clamp: 1;
+                  text-align: center;
+                  margin-bottom: 10px;
+                "
+              >
+                {{item.title}}
+              </ion-text>
+              <ion-text
+                class="whiteColor15Regular ellipseText"
+                style="-webkit-line-clamp: 4; text-align: center"
+              >
+                {{item.description}}
+              </ion-text>
+            </div>
+          </div>
+        </div>
+      </swiper-slide>
+    </swiper-container>
+
+    <div class="rowAlignCenter margin20" style="justify-content: space-between">
+      <div class="rowAlignCenter" style="align-self: center">
+        <div
+          *ngFor="let item of onboardingScreenList;let i=index"
+          style="margin: 0 5px; border-radius: 10px"
+          [style.width]="i===currentIndex?'10px':'6px'"
+          [style.height]="i===currentIndex?'10px':'6px'"
+          [style.background]="i===currentIndex?'var(--primaryColor)':'var(--grayColor)'"
+        ></div>
+      </div>
+      <div (click)="handleButtonPress()" class="center forwardButton">
+        <ion-icon
+          name="arrow-forward"
+          color="whiteColor"
+          style="font-size: 24px"
+        ></ion-icon>
+      </div>
+    </div>
+  </div>
+
+  <div
+    slot="fixed"
+    style="right: 20px; z-index: 100"
+    [style.top]="platform.is('ios')?'60px':'30px'"
+  >
+    <ion-text (click)="goTo('/auth/login')" class="grayColor16SemiBold">
+      Skip
+    </ion-text>
+  </div>
+</ion-content>

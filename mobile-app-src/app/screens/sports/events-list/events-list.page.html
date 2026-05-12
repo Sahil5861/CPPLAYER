@@ -1,0 +1,179 @@
+<ion-header [translucent]="false">
+  <ion-toolbar color="blackColor">
+    <ion-buttons slot="start">
+      <ion-back-button color="light"></ion-back-button>
+    </ion-buttons>
+    <ion-title color="light">
+        Events <br><small class="primaryColor14SemiBold">{{selectedData.title}}</small>
+      </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<!-- <ion-content [fullscreen]="true">
+  <div style="margin:20px 0">
+    <ion-grid [fixed]="true" style="--ion-grid-columns: 3;">
+      <ion-row>
+        <ion-col
+          size="1"
+          *ngFor="let item of items; let index = index;"
+          style="padding: 5px;">
+          <div class="icon-image-container-list">
+            <ion-img
+              [src]="item.thumbnail"
+              class="imageOverflow icon-image"
+              (ionImgDidLoad)="imageLoaded[index] = true"
+            ></ion-img>
+            <ion-spinner *ngIf="!imageLoaded[index]" name="crescent"
+              style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"></ion-spinner>
+          </div>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </div>
+  <ion-infinite-scroll (ionInfinite)="loadMoreItems($event)">
+    <ion-infinite-scroll-content
+      loadingSpinner="bubbles"
+      loadingText="Loading more data...">
+    </ion-infinite-scroll-content>
+  </ion-infinite-scroll>
+</ion-content> -->
+
+<ion-content [fullscreen]="true">
+  <div style="max-height: 70vh;overflow: hidden;display: inline-flex;">
+    <ion-img
+      [src]="selectedData.thumbnail"
+      style="width: 100vw; height: auto"
+    ></ion-img>
+    <!-- <ion-text
+      class="primaryColor30BebasRegular"
+      style="
+        flex: 1;
+        letter-spacing: 3px;
+        position: fixed;
+        top: 10px;
+        left: 17px;
+      "
+    >
+      <img
+        src="assets/mobi_img/MFT_A-2_Transparent-BG.png"
+        height="29px"
+        width="47px"
+        style="margin-top: 7px"
+      />
+    </ion-text> -->
+  </div>
+
+  <div class="row margin12" style="justify-content: center; line-height: 26px">
+    <ion-text class="v-line-text">{{selectedData.title}}</ion-text>
+  </div>
+
+  <p
+    class="font-openregular whiteColor10Regular ion-text-center"
+    style="margin: 20px 10px"
+    [innerHtml]="selectedData.description"
+  ></p>
+  <ion-buttons
+    class="margin12"
+    style="justify-content: center; margin-bottom: 20px"
+  >
+    <ion-button fill="clear" class="icon-button">
+      <div
+        class="button-content"
+        *ngIf="!apiService.checkSportsShowsFromWatchlist(selectedData.id)"
+        (click)="apiService.addToSportsShowsWatchList(selectedData.id)"
+      >
+        <ion-icon name="add-outline"></ion-icon>
+        <ion-label class="font-openregular">Watchlist</ion-label>
+      </div>
+      <div
+        class="button-content"
+        *ngIf="apiService.checkSportsShowsFromWatchlist(selectedData.id)"
+        (click)="apiService.deleteSportsShowsFromWatchlist(selectedData.id)"
+      >
+        <ion-icon name="checkmark-outline"></ion-icon>
+        <ion-label class="font-openregular">Watchlisted</ion-label>
+      </div>
+    </ion-button>
+    <ion-button fill="clear" class="icon-button">
+      <div class="button-content" (click)="share()">
+        <ion-icon name="share-social-outline"></ion-icon>
+        <ion-label>Share</ion-label>
+      </div>
+    </ion-button>
+    <!-- <ion-button fill="clear" class="icon-button">
+      <div class="button-content">
+        <ion-icon name="heart-outline"></ion-icon>
+        <ion-label>Rate</ion-label>
+      </div>
+    </ion-button> -->
+  </ion-buttons>
+
+  <ion-segment
+    *ngIf="!seasonLoading"
+    [(ngModel)]="selectedSeason"
+    (ionChange)="selectSeason($event.detail.value)"
+  >
+    <ion-segment-button *ngFor="let season of seasons" [value]="season">
+      {{ season.season_title }}
+    </ion-segment-button>
+  </ion-segment>
+
+  <!-- Episodes list loader -->
+  <ion-spinner *ngIf="episodesLoading" name="crescent"></ion-spinner>
+
+  <!-- Episodes list -->
+  <div *ngIf="!episodesLoading">
+    <div class="m12">
+      <div
+        *ngFor="let ep of episodes"
+        class="list-card"
+        (click)="playVideo(ep)"
+      >
+        <div class="rowAlignCenter">
+          <div class="center" style="position: relative; width: 80px">
+            <app-media-card
+              [src]="ep.thumbnail_url"
+              variant="thumb"
+            ></app-media-card>
+          </div>
+
+          <div class="column" style="flex: 1; margin-left: 5px">
+            <div class="rowAlignCenter">
+              <ion-text
+                class="whiteColor12Regular noellipse"
+                style="flex: 1; -webkit-line-clamp: 1"
+              >
+                <h6
+                  class="font-16"
+                  style="
+                    line-height: 20px;
+                    font-size: 13px;
+                    width: 95%;
+                    margin-bottom: 0;
+                  "
+                >
+                  {{ep.match_title}}
+                </h6>
+
+                <div class="description-ep">&nbsp;</div>
+              </ion-text>
+              <span
+                class="material-icons"
+                style="color: var(--whiteColor); font-size: 22px"
+              >
+                play_circle
+              </span>
+            </div>
+            <ion-text
+              class="whiteColor12Regular noellipse"
+              style="-webkit-line-clamp: 3; line-height: 16px; margin-top: 5px"
+            >
+              <!-- {{item.episodeDescription}} -->
+              <!-- S1 E1 . 17 DEC 1989 .23min -->
+            </ion-text>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</ion-content>

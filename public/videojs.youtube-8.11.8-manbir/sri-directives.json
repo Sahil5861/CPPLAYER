@@ -1,0 +1,11 @@
+{
+  "payload": {
+    "@youtube": {
+      "hashes": {
+        "sha512": "+tyuqJLAqgM/FtTMRskRS/csa7y0OExkeZQXNWf/xYPHi9XUhUygfWzuMpHZmV3cszB2haN7d7xhEFCWNqrSCA=="
+      },
+      "integrity": "sha512-+tyuqJLAqgM/FtTMRskRS/csa7y0OExkeZQXNWf/xYPHi9XUhUygfWzuMpHZmV3cszB2haN7d7xhEFCWNqrSCA==",
+      "path": "build/youtube-8.11.8.js"
+    }
+  }
+}
