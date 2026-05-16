@@ -864,9 +864,7 @@
 
                 // var data = jQuery.parseJSON(val);
 
-                
-                
-                
+    
                 $("#delete_blog_modal").modal('hide');
 
 

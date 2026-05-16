@@ -4378,26 +4378,27 @@ class AppApiControllerV3 extends Controller
     public function getAllLiveTV(Request $request){
         $user_id = $this->get_user_id();
         
+
+        // echo 'hii';exit;
         $post = json_decode(file_get_contents('php://input', 'r'));
         
         $genre = $post->genere;
             
-        $languageId = $post->languageId;
+        $languageId = $post->languageId ?? null;
 
         $is_valid = $this->checkDomainPermission('live_channels');
-
-    
 
         // Start query with join
         $query = Channel::where('channels.status', 1)            
             ->whereNull('channels.deleted_at')
-            ->orderBy('channels.channel_number', 'asc')
+            ->orderBy('languages.order_number', 'asc')
 
             ->leftJoin('languages', 'channels.channel_language', '=', 'languages.id')
             ->select(
                 'channels.*',
                 'languages.id as channel_language_id',
-                'languages.title as channel_language_title'
+                'languages.title as channel_language_title',
+                'languages.order_number as language_index'
             );
         
         if ($is_valid && $is_valid->original['status']) {
@@ -5369,6 +5370,27 @@ class AppApiControllerV3 extends Controller
             return response()->json([
                 'status' => true,
                 'data' => $sports_live
+            ]);
+        }
+        else{
+            return response()->json([
+                'status' => false,
+                'data' => []
+            ]);
+        }
+    }
+
+    public function getAllKidsLive(){
+        
+        $user_id = $this->get_user_id();    
+
+
+        $kids_live = Channel::whereNull('deleted_at')->where('status', 1)->where('kids_flag', 1)->get();
+
+        if (count($kids_live) > 0) {
+            return response()->json([
+                'status' => true,
+                'data' => $kids_live
             ]);
         }
         else{

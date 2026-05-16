@@ -33,6 +33,8 @@ class ManageKidsChannel extends Controller
 
         return view('admin.kidschannel.dragdrop', $this->data);
     }
+
+    
     public function getKidsChannelList(Request $request)
     {
         $columns = [

@@ -82,14 +82,14 @@
                         
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label for="old_url">Old Url</label>
+                                <label for="old_url">Old Url <small>(Enter Only Domain Name)</small></label>
                                 <input type="text" name="old_url" id="old_url" class="form-control" value="{{ isset($url_setting) ? $url_setting->old_url : '' }}"  placeholder="Old Url" required>
 
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label for="old_url">New Url</label>
+                                <label for="old_url">New Url <small>(Enter Only Domain Name)</small></label>
                                 <input type="text" name="new_url" id="new_url" class="form-control" value="{{ isset($url_setting) ? $url_setting->new_url : '' }}" placeholder="New Url" required>
                             </div>
                         </div>
@@ -126,14 +126,14 @@
                     
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label for="old_url">Old Url</label>
+                                <label for="old_url">Old Url <small>(Enter Only Domain Name)</small></label>
                                 <input type="text" name="old_url"  class="form-control" value="{{ isset($url_setting) ? $url_setting->old_url : '' }}"  placeholder="Old Url" required>
 
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label for="old_url">New Url</label>
+                                <label for="old_url">New Url <small>(Enter Only Domain Name)</small></label>
                                 <input type="text" name="new_url" class="form-control" value="{{ isset($url_setting) ? $url_setting->new_url : '' }}" placeholder="New Url" required>
                             </div>
                         </div>

@@ -12,3 +12,10 @@ ALTER TABLE `channels` ADD `sport_flag` BOOLEAN NOT NULL DEFAULT FALSE AFTER `st
 
 
 ALTER TABLE `movies` ADD `is_sd` BOOLEAN NOT NULL DEFAULT FALSE AFTER `status`;
+
+
+ALTER TABLE `channels` ADD `kids_flag` BOOLEAN NOT NULL DEFAULT FALSE AFTER `sport_flag`;
+
+
+ALTER TABLE `languages` ADD `order_number` INT(11) NULL DEFAULT NULL AFTER `status`;
+update languages set order_number = id;

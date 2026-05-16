@@ -345,6 +345,9 @@ Route::prefix('v3')->group(function (){
 
 
     Route::get('getAllSportsLive', [AppApiControllerV3::class, 'getAllSportsLive']);
+    Route::get('getAllKidsLive', [AppApiControllerV3::class, 'getAllKidsLive']);
+
+    
     Route::get('checkIsFrozen', [AppApiControllerV3::class, 'checkIsFrozen']);
 
 

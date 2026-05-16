@@ -12,6 +12,25 @@ class ManageLanguage extends Controller
         return view('admin.language.index');
     }
 
+
+    public function langOrder()
+    {
+        $this->data['languages'] = Language::whereNull('deleted_at')->orderBy('order_number', 'asc')->get();
+
+        $allKidsChannels = [];
+        $dataForLoop = [];
+
+        foreach ($this->data['languages'] as $kidschannel) {
+            $allKidsChannels[] = $kidschannel->order_number;
+            $dataForLoop[$kidschannel->order_number] = $kidschannel;
+        }
+
+        $this->data['dataForLoop'] = $dataForLoop;
+        $this->data['allKidsChannels'] = $allKidsChannels;
+
+        return view('admin.language.dragdrop', $this->data);
+    }
+
     /*get rolse by ajax*/
     public function getLanguageList(Request $request)
     {
@@ -177,5 +196,18 @@ class ManageLanguage extends Controller
         }else{
             echo json_encode('message','Language not deleted successfully');
         }
+    }
+
+    public function saveLanguagesOrder(Request $request)
+    {
+        $ids = $request->ids;
+
+        if (!empty($ids)) {
+            foreach ($ids as $index => $id) {
+                Language::where('id', $id)->update(['order_number' => $index + 1]);
+            }
+        }
+
+        return redirect()->back()->with('success', 'Languages order updated successfully.');
     }
 }

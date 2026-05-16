@@ -628,19 +628,19 @@ class Channels extends Controller
 
         if (!empty($request->id)) {
 
-            $channelNumberExists = Channel::where('channel_number', $request->channel_number)->where('id', '!=', $request->id)->first();
+            // $channelNumberExists = Channel::where('channel_number', $request->channel_number)->where('id', '!=', $request->id)->first();
 
             $channelNameExists = Genre::where('title', $request->channel_name)->first();
-            if ($channelNumberExists) {
-                return back()->with('error', 'This channel number is already exists.');
-            }
+            // if ($channelNumberExists) {
+            //     return back()->with('error', 'This channel number is already exists.');
+            // }
             // if ($channelNameExists) {
             //     return back()->with('error', 'This channel name is not available.');
             // }
 
             $channel = Channel::firstwhere('id', $request->id);
             $channel->channel_name = $request->channel_name;
-            $channel->channel_number = $request->channel_number;
+            // $channel->channel_number = $request->channel_number;
 
             $channel->channel_logo = $request->channel_logo;
             $channel->channel_bg = $request->channel_bg;
@@ -652,6 +652,7 @@ class Channels extends Controller
             $channel->genres = implode(',', $request->channel_genre);
             $channel->status = $request->status;
             $channel->sport_flag = $request->sport_flag ?? 0;
+            $channel->kids_flag = $request->kids_flag ?? 0;
             if ($channel->save()) {
                 return back()->with('message', 'Channel updated successfully');
             } else {

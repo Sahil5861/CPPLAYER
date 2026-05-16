@@ -226,11 +226,19 @@
                                 </div>
                             </div>
 
-                            <div class="col-md-12 mb-3">                                    
+                            <div class="col-md-6 mb-3">                                    
                                 <label class="new-control new-checkbox checkbox-primary cdn-checkbox">
                                     <input type="checkbox" class="new-control-input" {{isset($channel) && $channel->sport_flag == 1 ? 'checked' : ''}}  name="sport_flag" value="1">
                                     <span class="new-control-indicator"></span>
                                     <span class="mx-2" style="user-select: none;">Check for Sports Live</span>
+                                </label>
+                            </div>
+
+                            <div class="col-md-6 mb-3">                                    
+                                <label class="new-control new-checkbox checkbox-primary cdn-checkbox">
+                                    <input type="checkbox" class="new-control-input" {{isset($channel) && $channel->kids_flag == 1 ? 'checked' : ''}}  name="kids_flag" value="1">
+                                    <span class="new-control-indicator"></span>
+                                    <span class="mx-2" style="user-select: none;">Check for Kids Live</span>
                                 </label>
                             </div>
 

@@ -444,6 +444,8 @@ Route::group(['namespace' => 'App\Http\Controllers'], function()
 
         //Language
         Route::get('/languages', [ManageLanguage::class, 'index'])->name('admin.languages');
+        Route::get('/languages-order', [ManageLanguage::class, 'langOrder'])->name('admin.languages-order');
+        Route::post('/save-language-orders', [ManageLanguage::class,'saveLanguagesOrder'])->name('saveLanguagesOrder');
         Route::get('/getLanguageList', [ManageLanguage::class, 'getLanguageList'])->name('getLanguageList');
         Route::get('/add-language', [ManageLanguage::class,'addLanguage'])->name('addLanguage');
         Route::post('/addLanguage', [ManageLanguage::class,'add'])->name('saveLanguage');

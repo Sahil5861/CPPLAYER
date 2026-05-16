@@ -16,6 +16,7 @@
                 @endif
                 <div class="text-right">
                     <a href="{{url('add-language')}}" class="btn btn-primary mb-2">Add +</a>
+                    <a href="{{ route('admin.languages-order')}}" class="btn btn-secondary mb-2">Update Order</a>
                 </div>
                 <div class="table-responsive mb-4 mt-4">
                     <table id="multi-column-ordering" class="table table-hover" style="width:100%">

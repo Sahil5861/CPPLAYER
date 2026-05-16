@@ -350,10 +350,6 @@ class SettingsController extends Controller
 
 
         return back()->with('message', 'Urls Updated');
-
-
-
-
     }
 
     public function edit($id){
