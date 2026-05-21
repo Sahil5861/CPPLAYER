@@ -350,7 +350,7 @@ Route::prefix('v3')->group(function (){
     
     Route::get('checkIsFrozen', [AppApiControllerV3::class, 'checkIsFrozen']);
 
-
+    Route::get('get-helplines', [AppApiControllerV3::class, 'getHelp']);
 
     Route::get('check-price-and-update-by-cron', [AppApiControllerV3::class, 'checkPriceAndUpdate']);
 });

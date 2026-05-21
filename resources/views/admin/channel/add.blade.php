@@ -173,6 +173,7 @@
                                 <label for="stream_type">Stream Type*</label>
                                 <select name="stream_type" id="stream_type" class="form-control"  onchange="toggleBackupUrl(this)">
                                     <option value="M3u8" @if(isset($channel) && $channel->stream_type == 'M3u8'){{'selected'}} @endif>M3u8</option>
+                                    <option value="MKV" @if(isset($channel) && $channel->stream_type == 'MKV'){{'selected'}} @endif>MKV</option>
                                     <option value="YoutubeLive" @if(isset($channel) && $channel->stream_type == 'YoutubeLive'){{'selected'}} @endif>YoutubeLive</option>
                                     <option value="Custom" @if(isset($channel) && $channel->stream_type == 'Custom'){{'selected'}} @endif>Custom</option>
                                 </select>

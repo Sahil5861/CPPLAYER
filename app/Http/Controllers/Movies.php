@@ -48,11 +48,12 @@ class Movies extends Controller
 
         return view('admin.movie.dragdrop', $this->data);
     }
+    
 
     public function getRecentMovieOrderList()
     {
         // $this->data['movies'] = Movie::whereNull('deleted_at')->where('is_recent',1)->orderBy('recent_index', 'asc')->get();
-        $movies = Movie::whereNull('deleted_at')->where('is_recent',1)->orderBy('recent_index', 'asc')->get();
+        $movies = Movie::whereNull('deleted_at')->where('is_recent',1)->where('is_sd', 0)->orderBy('recent_index', 'asc')->get();
        
         // $allMovies = [];
         // $dataForLoop = [];
@@ -68,7 +69,39 @@ class Movies extends Controller
         return view('admin.movie.dragdroprecent', $this->data);
     }
 
+    public function getRecentMovieSDOrderList()
+    {
+        // $this->data['movies'] = Movie::whereNull('deleted_at')->where('is_recent',1)->orderBy('recent_index', 'asc')->get();
+        $movies = Movie::whereNull('deleted_at')->where('is_recent',1)->where('is_sd', 1)->orderBy('recent_index', 'asc')->get();
+       
+        // $allMovies = [];
+        // $dataForLoop = [];
+
+        // foreach ($this->data['movies'] as $movie) {
+        //     $allMovies[] = $movie->recent_index;
+        //     $dataForLoop[$movie->recent_index] = $movie;
+        // }
+
+        $this->data['dataForLoop'] = $movies;
+        // $this->data['allMovies'] = $allMovies;
+
+        return view('admin.movie.dragdroprecentSD', $this->data);
+    }
+
+
     public function saveRecentMovieOrder(Request $request)
+    {
+        $ids = $request->ids;
+        if (!empty($ids)) {
+            foreach ($ids as $index => $id) {
+                Movie::where('id', $id)->update(['recent_index' => $index + 1]);
+            }
+        }
+
+        return redirect()->back()->with('success', 'Recent Movie order updated successfully.');
+    }
+
+    public function saveRecentSDMovieOrder(Request $request)
     {
         $ids = $request->ids;
         if (!empty($ids)) {
@@ -209,6 +242,10 @@ class Movies extends Controller
             $movieQuery->where('playlist_id', $playlist_id);
         }
 
+        if ($request->has('stream_type') && $stream_type != '') {
+            $movieQuery->where('source_type', $stream_type);
+        }
+
         if ($request->has('status') && $status != '') {             
             $movieQuery->where('movies.status', (int)$status);                        
         }
@@ -223,10 +260,7 @@ class Movies extends Controller
             $movieQuery->where('movies.is_sd', $movie_networl_type);                        
         }
 
-        
-
-
-
+    
         if ($request->has('network_id') && !empty($network_id)) {
             $movie_ids = MovieContentNetwork::whereIn('network_id', (array) $network_id)->pluck('movie_id')->toArray();
 
@@ -599,6 +633,20 @@ class Movies extends Controller
             $movie->index = $request->index ?? 0;
             $movie->movie_order = $request->index ?? 0;
             $movie->is_recent = $request->is_recent == 'on' ? 1 : 0;
+
+            if ($request->is_recent == 'on') {
+                // updaet recent value for all old movies 
+                
+                $recent_movies = Movie::whereNull('deleted_at')->where('is_recent',1)->get();
+                
+                foreach ($recent_movies as $key => $r_movie) {
+                    $r_movie->recent_index = $r_movie->recent_index + 1;
+
+                    $r_movie->save();
+                }
+                $movie->recent_index = 1;
+
+            }
             $movie->is_sd = $request->is_sd == 'on' ? 1 : 0;
             $movie->recent_date = $request->recent_date ?? now();     
             $movie->source_type = $request->source_type;    
@@ -607,8 +655,8 @@ class Movies extends Controller
             $movie->backup_url = $request->bk_url ?? null;
             $movie->genres = implode(',', $request->movie_genre);
 
-            $last_index = Movie::max('recent_index');
-            $movie->recent_index = $last_index + 1;
+            // $last_index = Movie::max('recent_index');
+            // $movie->recent_index = $last_index + 1;
 
 
             if (!empty($request->hidden_countries) && is_array($request->hidden_countries)) {

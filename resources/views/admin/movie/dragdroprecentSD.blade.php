@@ -24,7 +24,7 @@
 <div class="layout-px-spacing">
     <div class="row" id="cancel-row">
         <div class="col-lg-12 layout-spacing layout-top-spacing">
-            <form id="order-form" method="post" action="{{ route('saveRecentMovieOrder') }}" enctype="multipart/form-data" novalidate class="simple-example">
+            <form id="order-form" method="post" action="{{ route('saveRecentSDMovieOrder') }}" enctype="multipart/form-data" novalidate class="simple-example">
                 @csrf
                 <div class="statbox widget box box-shadow">
                     <div class="widget-header">
@@ -49,7 +49,7 @@
                                         @foreach($dataForLoop as $key => $dcl)
                                         <div class="col-sm-3 d-md-flex d-block" id="main_div_{{$key}}" style="padding: 5px;">
                                             <div class="media d-md-flex d-block text-sm-left text-center" style="padding: 5px; border: 1px solid; padding: 5px 10px; border-radius: 5px; width: 100%;">
-                                                <span id="ch_{{$key}}" class="c-index" style="position: relative;left: 0px;top: 0px; margin-right:8px;">{{$key}}</span>
+                                                <span id="ch_{{$key}}" class="c-index" style="position: relative;left: 0px;top: 0px; margin-right:8px;">{{$dcl->recent_index}}</span>
                                                 {{-- <img alt="avatar" src="{{ $dcl->banner }}" class="img-fluid" style="width: 60px; margin-right: 5px;"> --}}
                                                 <div class="media-body">
                                                     <div class="d-xl-flex d-block justify-content-between" style="position: relative;">

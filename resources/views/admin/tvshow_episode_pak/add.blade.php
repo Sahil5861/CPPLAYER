@@ -81,6 +81,7 @@
                             <label for="streaming_type">Streaming Type</label>
                             <select name="streaming_type" id="streaming_type" class="form-control select" onchange="toggleBackupUrl(this)">
                                 <option value="m3u8" @if(isset($episode) && $episode->streaming_type == 'm3u8') selected @endif>m3u8</option>
+                                <option value="MKV" @if(isset($episode) && $episode->streaming_type == 'MKV') selected @endif>MKV</option>
                                 <option value="youtube" @if(isset($episode) && $episode->streaming_type == 'youtube') selected @endif>Youtube</option>
                             </select>
                         </div>

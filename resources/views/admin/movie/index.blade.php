@@ -192,6 +192,7 @@
                             <option value="">--Filter Stream Type--</option>
                             <option value="YoutubeLive">Youtube</option>
                             <option value="M3U8">M3U8</option>                            
+                            <option value="MKV">MKV</option>                            
                         </select>
                     </div>  
                     

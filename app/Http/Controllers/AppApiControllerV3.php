@@ -67,6 +67,7 @@ use App\Models\AppDomainContent;
 use App\Models\CDNDomain;
 use App\Models\CdnSetting;
 use App\Models\Language;
+use App\Models\HelpLine;
 
 use App\Models\UserPlanDetails;
 use Illuminate\Http\Request;
@@ -1668,6 +1669,7 @@ class AppApiControllerV3 extends Controller
         $post = json_decode(file_get_contents('php://input', 'r'));
         $query = Movie::where('status', 1)
         ->where('is_recent', 1)
+        ->where('is_sd', 0)
         ->whereNull('deleted_at')
         ->orderBy('recent_index', 'asc');
 
@@ -1720,7 +1722,9 @@ class AppApiControllerV3 extends Controller
         // ->orderBy('recent_index', 'asc');
 
 
-        $query = Movie::where('status', 1)->where('is_sd', 1)->whereNull('deleted_at')->orderBy('recent_index', 'asc');
+        $query = Movie::where('status', 1)
+        ->where('is_recent', 1)
+        ->where('is_sd', 1)->whereNull('deleted_at')->orderBy('recent_index', 'asc');
 
         if (isset($_GET['page']) && is_numeric($_GET['page'])) {
             // echo 'page set'; exit;
@@ -4373,7 +4377,6 @@ class AppApiControllerV3 extends Controller
         ]);
     }
 
-
     
     public function getAllLiveTV(Request $request){
         $user_id = $this->get_user_id();
@@ -4449,7 +4452,6 @@ class AppApiControllerV3 extends Controller
             return response()->json($channels);
         }
     }
-
 
     // 22 August 2025
 
@@ -5473,12 +5475,23 @@ class AppApiControllerV3 extends Controller
 
         }
 
-
-
-
         return response()->json([
             'status' => false,                        
         ]);
+    }
+
+    public function getHelp(){
+        $user_id = $this->get_user_id();
+
+
+        $helplines = HelpLine::first();   
+
+        if ($helplines) {
+            return response()->json([
+                'status' => true,
+                'data' => $helplines
+            ]);
+        }
     }
 
 }

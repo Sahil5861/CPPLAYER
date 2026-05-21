@@ -99,6 +99,7 @@
                             <label for="video_url">Stream Type</label>
                             <select name="stream_type" id="stream_type" class="form-control" onchange="toggleBackupUrl(this)">
                                 <option value="m3u8" @if(old('stream_type', $match->stream_type ?? '') == 'm3u8') selected @endif>M3U8</option>
+                                <option value="MKV" @if(old('stream_type', $match->stream_type ?? '') == 'MKV') selected @endif>MKV</option>
                                 <option value="youtube" @if(old('stream_type', $match->stream_type ?? '') == 'youtube') selected @endif>Youtube</option>
                             </select>
                         </div>

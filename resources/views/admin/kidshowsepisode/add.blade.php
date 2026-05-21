@@ -88,6 +88,7 @@
                                 {{-- <input type="text" name="source" id="source" class="form-control" value="{{old('source', isset($episode) ? $episode->source : '')}}" placeholder="Source"> --}}
                                 <select name="source" id="source" class="form-control select" onchange="toggleBackupUrl(this)">
                                     <option value="m3u8" @if(isset($episode) && $episode->source == 'm3u8'){{'selected'}} @endif>M3U8</option>
+                                    <option value="MKV" @if(isset($episode) && $episode->source == 'MKV') selected @endif>MKV</option>
                                     <option value="youtube" @if(isset($episode) && $episode->source == 'youtube'){{'selected'}} @endif>Youtube</option>
                                 </select>
                                 <div class="invalid-feedback">

@@ -100,6 +100,7 @@
                                 <label for="stream_type">Stream Type*</label>
                                 <select name="source_type" id="source_type" class="form-control" onchange="toggleBackupUrl(this)">
                                     <option value="M3u8" @if(isset($stage_show) && $stage_show->source_type == 'M3u8'){{'selected'}} @endif>M3u8</option>
+                                    <option value="MKV" @if(isset($stage_show) && $stage_show->source_type == 'MKV') {{'selected'}} @endif>MKV</option>
                                     <option value="YoutubeLive" @if(isset($stage_show) && $stage_show->source_type == 'YoutubeLive'){{'selected'}} @endif>Youtube</option>
                                 </select>
                                 <div class="invalid-feedback">

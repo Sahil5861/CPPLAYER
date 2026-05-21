@@ -69,6 +69,8 @@ use App\Http\Controllers\RetailorAd;
 use App\Http\Controllers\StageShowsPak;
 use App\Http\Controllers\LaughterShows;
 use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\HelpController;
+
 
 
 use App\Http\Controllers\LogoutController;
@@ -492,6 +494,7 @@ Route::group(['namespace' => 'App\Http\Controllers'], function()
         Route::get('/getMoviesList', [Movies::class, 'getMoviesList'])->name('getMovieList');
         Route::get('/movie-order', [Movies::class, 'getMovieOrderList'])->name('admin.movie.order');
         Route::get('/movie-order-recent', [Movies::class, 'getRecentMovieOrderList'])->name('admin.movie.order-recent');
+        Route::get('/movie-order-recent-SD', [Movies::class, 'getRecentMovieSDOrderList'])->name('admin.movie.order-recent-sd');
 
 
         Route::get('/deleted-movie', [Movies::class, 'deletedChannel'])->name('admin.movie.deleted');
@@ -501,6 +504,7 @@ Route::group(['namespace' => 'App\Http\Controllers'], function()
         Route::post('/addMovie', [Movies::class,'add'])->name('saveMovie');
         Route::post('/save-movie-orders', [Movies::class,'saveMovieOrder'])->name('saveMovieOrder');
         Route::post('/save-recent-movie-orders', [Movies::class,'saveRecentMovieOrder'])->name('saveRecentMovieOrder');
+        Route::post('/save-recent-sd-movie-orders', [Movies::class,'saveRecentSDMovieOrder'])->name('saveRecentSDMovieOrder');
         Route::get('/edit-movie/{id}', [Movies::class,'editChannel'])->name('edit-movie');
         Route::post('/movie/destroy', [Movies::class,'destroy'])->name('movie.destroy');
         Route::get('/movie/update-status/{id}', [Movies::class,'updateStatus'])->name('movie.update-status');
@@ -946,6 +950,8 @@ Route::group(['namespace' => 'App\Http\Controllers'], function()
         Route::get('url-settings-edit/{id}', [SettingsController::class, 'edit'])->name('url-settings-edit');
 
 
+        Route::get('help-settings', [HelpController::class, 'add'])->name('help-settings');
+        Route::post('help-settings-save', [HelpController::class, 'save'])->name('help-settings-save');
 
         Route::get('/cdn-settings', [CDNSettings::class, 'index'])->name('admin.cdn_settings');
         Route::post('/cdn-save', [CDNSettings::class, 'update'])->name('cdn.save');
