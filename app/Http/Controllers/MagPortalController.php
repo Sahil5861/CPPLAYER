@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\AdminSuperAdminPlan;
 use App\Models\AppDomainContent;
 use App\Models\Channel;
 use App\Models\Slider;
@@ -17,7 +16,6 @@ use App\Models\KidsShow;
 use App\Models\Language;
 use App\Models\Movie;
 use App\Models\MovieLink;
-use App\Models\ResellerAdminPlan;
 use App\Models\RelChannel;
 use App\Models\RelShow;
 use App\Models\RelshowsEpisode;
@@ -32,7 +30,6 @@ use App\Models\TvShowEpisodePak;
 use App\Models\TvShowPak;
 use App\Models\TvShowSeason;
 use App\Models\TvShowSeasonPak;
-use App\Models\User;
 use App\Models\UserPlanDetails;
 use App\Models\WebSeries;
 use App\Models\WebSeriesEpisode;
@@ -984,9 +981,11 @@ class MagPortalController extends Controller
     ): array {
         $dataFor = $sectionConfig['data_for'] ?? null;
         $taxonomy = $this->buildFrontendBrowserTaxonomy((int) $network->id, $dataFor);
+        $usesGenreTabs = $this->frontendSectionUsesGenreTabs($sectionConfig);
+        $usesChannelTabs = $this->frontendSectionUsesChannelTabs($sectionConfig);
 
-        $selectedGenre = collect($taxonomy['genres'])->contains($genre) ? $genre : '';
-        $selectedChannelId = collect($taxonomy['channels'])->pluck('id')->contains($channelId) ? $channelId : 0;
+        $selectedGenre = $usesGenreTabs && collect($taxonomy['genres'])->contains($genre) ? $genre : '';
+        $selectedChannelId = $usesChannelTabs && collect($taxonomy['channels'])->pluck('id')->contains($channelId) ? $channelId : 0;
 
         $items = collect($this->buildFrontendBrowserItems((int) $network->id, $dataFor, $selectedGenre, $selectedChannelId))
             ->unique(fn ($item) => ($item['type'] ?? 'item') . ':' . ($item['id'] ?? 0))
@@ -1018,21 +1017,25 @@ class MagPortalController extends Controller
 
         return [
             'hero' => $hero,
-            'genres' => collect([['id' => '', 'label' => 'All']])
-                ->merge(collect($taxonomy['genres'])->map(fn ($value) => [
-                    'id' => (string) $value,
-                    'label' => (string) $value,
-                ]))
-                ->values()
-                ->all(),
+            'genres' => $usesGenreTabs
+                ? collect([['id' => '', 'label' => 'All']])
+                    ->merge(collect($taxonomy['genres'])->map(fn ($value) => [
+                        'id' => (string) $value,
+                        'label' => (string) $value,
+                    ]))
+                    ->values()
+                    ->all()
+                : [],
             'selected_genre' => $selectedGenre,
-            'channels' => collect([['id' => 0, 'label' => 'All']])
-                ->merge(collect($taxonomy['channels'])->map(fn ($channel) => [
-                    'id' => (int) ($channel['id'] ?? 0),
-                    'label' => (string) ($channel['label'] ?? 'Channel'),
-                ]))
-                ->values()
-                ->all(),
+            'channels' => $usesChannelTabs
+                ? collect([['id' => 0, 'label' => 'All']])
+                    ->merge(collect($taxonomy['channels'])->map(fn ($channel) => [
+                        'id' => (int) ($channel['id'] ?? 0),
+                        'label' => (string) ($channel['label'] ?? 'Channel'),
+                    ]))
+                    ->values()
+                    ->all()
+                : [],
             'selected_channel_id' => $selectedChannelId,
             'slides' => $slides,
             'items' => $pagedItems,
@@ -1044,6 +1047,20 @@ class MagPortalController extends Controller
                 'has_more' => $currentPage < $lastPage,
             ],
         ];
+    }
+
+    protected function frontendSectionUsesGenreTabs(array $sectionConfig): bool
+    {
+        return (string) ($sectionConfig['browser_primary_kind'] ?? 'genre') !== 'channel';
+    }
+
+    protected function frontendSectionUsesChannelTabs(array $sectionConfig): bool
+    {
+        if (array_key_exists('show_channel_tabs', $sectionConfig)) {
+            return (bool) $sectionConfig['show_channel_tabs'];
+        }
+
+        return (string) ($sectionConfig['browser_primary_kind'] ?? 'genre') === 'channel';
     }
 
     protected function buildFrontendLiveBrowserPayload(
@@ -1065,7 +1082,9 @@ class MagPortalController extends Controller
             ))
             ->values();
 
-        $selectedGenre = collect($this->buildFrontendLiveGenreTabs($filteredChannels))
+        $languageGenres = $this->buildFrontendLiveGenreTabs($filteredChannels);
+
+        $selectedGenre = collect($languageGenres)
             ->pluck('id')
             ->contains($genre)
                 ? $genre
@@ -1082,7 +1101,6 @@ class MagPortalController extends Controller
 
         $mappedChannels = $filteredChannels
             ->map(fn ($channel) => $this->mapFrontendLiveChannel($channel))
-            ->sortByDesc('sort_at')
             ->values();
 
         $total = $mappedChannels->count();
@@ -1112,7 +1130,7 @@ class MagPortalController extends Controller
             ],
             'selected_network_id' => $selectedLanguageId,
             'genres' => collect([['id' => '', 'label' => 'All']])
-                ->merge(collect($this->buildFrontendLiveGenreTabs($filteredChannels))->map(fn ($tab) => [
+                ->merge(collect($languageGenres)->map(fn ($tab) => [
                     'id' => (string) ($tab['id'] ?? ''),
                     'label' => (string) ($tab['label'] ?? ''),
                 ]))
@@ -1148,7 +1166,7 @@ class MagPortalController extends Controller
             ->whereIn('id', $languageIds)
             ->where('status', 1)
             ->whereNull('deleted_at')
-            ->orderBy('title')
+            ->orderBy('id')
             ->get(['id', 'title'])
             ->map(fn ($language) => [
                 'id' => (int) $language->id,
@@ -1208,12 +1226,7 @@ class MagPortalController extends Controller
 
     protected function buildFrontendBrowserTaxonomy(int $networkId, ?string $dataFor): array
     {
-        $logs = DB::table('content_network_log')
-            ->where('network_id', $networkId)
-            ->when(!empty($this->frontendContentTypesForDataFor($dataFor)), function ($query) use ($dataFor) {
-                $query->whereIn('content_type', $this->frontendContentTypesForDataFor($dataFor));
-            })
-            ->get();
+        $logs = $this->frontendContentRefsForNetwork($networkId, $dataFor);
 
         $genres = collect();
         $channels = collect();
@@ -1370,12 +1383,7 @@ class MagPortalController extends Controller
 
     protected function buildFrontendBrowserItems(int $networkId, ?string $dataFor, string $genre, int $channelId): array
     {
-        $logs = DB::table('content_network_log')
-            ->where('network_id', $networkId)
-            ->when(!empty($this->frontendContentTypesForDataFor($dataFor)), function ($query) use ($dataFor) {
-                $query->whereIn('content_type', $this->frontendContentTypesForDataFor($dataFor));
-            })
-            ->get();
+        $logs = $this->frontendContentRefsForNetwork($networkId, $dataFor);
 
         $items = [];
 
@@ -1511,140 +1519,38 @@ class MagPortalController extends Controller
 
     protected function getLiveChannelsForPlans(Collection $plans, ?Request $request = null): Collection
     {
-        $channels = collect();
+        $query = Channel::query()
+            ->where('channels.status', 1)
+            ->whereNull('channels.deleted_at')
+            ->leftJoin('languages', 'channels.channel_language', '=', 'languages.id')
+            ->select(
+                'channels.*',
+                'languages.id as channel_language_id',
+                'languages.title as channel_language_title'
+            );
 
-        foreach ($plans as $plan) {
-            $owner = User::find($plan->plan_purchased_by);
-            if (!$owner) {
-                continue;
-            }
-
-            if ((int) $owner->role === 2) {
-                $superAdminPlanIds = AdminSuperAdminPlan::where('admin_plan_id', $plan->plan_id)
-                    ->where('status', 1)
-                    ->pluck('super_admin_plan_id');
-
-                if ($superAdminPlanIds->isNotEmpty()) {
-                    $channels = $channels->merge(
-                        DB::table('package_channels')
-                            ->leftJoin('channels', 'channels.id', '=', 'package_channels.channel_id')
-                            ->select(
-                                'channels.id',
-                                'channels.channel_number',
-                                'channels.channel_name',
-                                'channels.channel_logo',
-                                'channels.channel_bg',
-                                'channels.channel_language',
-                                'channels.channel_index',
-                                'channels.position_locked',
-                                'channels.status',
-                                'channels.channel_description',
-                                'channels.view_count',
-                                'channels.created_at',
-                                'channels.channel_link',
-                                'channels.stream_type',
-                                'channels.genres'
-                            )
-                            ->whereIn('package_channels.plan_id', $superAdminPlanIds)
-                            ->whereNull('channels.deleted_at')
-                            ->where('channels.status', 1)
-                            ->get()
-                    );
-                }
-
-                continue;
-            }
-
-            if ((int) $owner->role === 3) {
-                $superAdminPlanIds = ResellerAdminPlan::query()
-                    ->leftJoin('admin_super_admin_plans', 'admin_super_admin_plans.admin_plan_id', '=', 'reseller_admin_plans.admin_plan_id')
-                    ->where('reseller_admin_plans.reseller_plan_id', $plan->plan_id)
-                    ->pluck('admin_super_admin_plans.super_admin_plan_id')
-                    ->filter();
-
-                if ($superAdminPlanIds->isNotEmpty()) {
-                    $channels = $channels->merge(
-                        DB::table('package_channels')
-                            ->leftJoin('channels', 'channels.id', '=', 'package_channels.channel_id')
-                            ->select(
-                                'channels.id',
-                                'channels.channel_number',
-                                'channels.channel_name',
-                                'channels.channel_logo',
-                                'channels.channel_bg',
-                                'channels.channel_language',
-                                'channels.channel_index',
-                                'channels.position_locked',
-                                'channels.status',
-                                'channels.channel_description',
-                                'channels.view_count',
-                                'channels.created_at',
-                                'channels.channel_link',
-                                'channels.stream_type',
-                                'channels.genres'
-                            )
-                            ->whereIn('package_channels.plan_id', $superAdminPlanIds)
-                            ->whereNull('channels.deleted_at')
-                            ->where('channels.status', 1)
-                            ->get()
-                    );
-                }
-
-                continue;
-            }
-
-            if ((int) $owner->role === 6) {
-                $channels = $channels->merge(
-                    DB::table('netadmin_channels as nc')
-                        ->leftJoin('channels as c', 'c.id', '=', 'nc.channel_id')
-                        ->select(
-                            'c.id',
-                            'c.channel_number',
-                            'c.channel_name',
-                            'c.channel_logo',
-                            'c.channel_bg',
-                            'c.channel_language',
-                            'c.channel_index',
-                            'c.position_locked',
-                            'c.status',
-                            'c.channel_description',
-                            'c.view_count',
-                            'c.created_at',
-                            'nc.link as channel_link',
-                            'c.stream_type',
-                            'c.genres'
-                        )
-                        ->where('nc.plan_id', $plan->plan_id)
-                        ->where('nc.status', 1)
-                        ->where('nc.link', '<>', '')
-                        ->whereNull('c.deleted_at')
-                        ->where('c.status', 1)
-                        ->get()
-                );
-            }
+        $allowedIds = $this->frontendPermittedLiveChannelIds($request);
+        if ($allowedIds->isNotEmpty()) {
+            $query->whereIn('channels.id', $allowedIds);
         }
 
-        $channels = $channels
-            ->filter(fn ($channel) => !empty($channel->id) && !empty($channel->channel_link))
-            ->keyBy('id')
-            ->sortBy(fn ($channel) => (int) ($channel->channel_number ?? 0))
-            ->values();
+        return $query->get()->values();
+    }
 
+    protected function frontendPermittedLiveChannelIds(?Request $request): Collection
+    {
         $domainRow = $request ? $this->resolveDomainContent($request) : null;
-        if ($domainRow && !empty($domainRow->live_channels)) {
-            $allowedIds = collect(explode(',', (string) $domainRow->live_channels))
-                ->map(fn ($id) => (int) trim($id))
-                ->filter()
-                ->values();
-
-            if ($allowedIds->isNotEmpty()) {
-                $channels = $channels
-                    ->filter(fn ($channel) => $allowedIds->contains((int) $channel->id))
-                    ->values();
-            }
+        if (!$domainRow) {
+            return collect();
         }
 
-        return $channels;
+        $value = $domainRow->live_channels ?? [];
+
+        return collect(is_array($value) ? $value : explode(',', (string) $value))
+            ->map(fn ($id) => (int) trim((string) $id))
+            ->filter()
+            ->unique()
+            ->values();
     }
 
     protected function getVodMoviesForPlans(Collection $plans): Collection
@@ -1788,6 +1694,7 @@ class MagPortalController extends Controller
                 'data_for' => 'content',
                 'rail_title' => 'Content Networks',
                 'browser_primary_kind' => 'genre',
+                'show_channel_tabs' => false,
             ],
             [
                 'slug' => 'recently-added',
@@ -1822,39 +1729,40 @@ class MagPortalController extends Controller
                 'rail_title' => 'TV Show Networks',
                 'browser_primary_kind' => 'channel',
             ],
-            [
-                'slug' => 'tv-shows-pak',
-                'label' => 'TV Shows Pak',
-                'title' => 'TV Shows Pak',
-                'copy' => 'Pakistani show libraries prepared for larger catalog expansion.',
-                'accent' => '#6fa96f',
-                'screen' => 'browser',
-                'data_for' => 'tvshowspak',
-                'rail_title' => 'TV Shows Pak Networks',
-                'browser_primary_kind' => 'channel',
-            ],
-            [
-                'slug' => 'kids',
-                'label' => 'Kids',
-                'title' => 'Kids',
-                'copy' => 'Kids channels with show-based browsing and episode playback.',
-                'accent' => '#f2c24b',
-                'screen' => 'browser',
-                'data_for' => 'kidchannels',
-                'rail_title' => 'Kids Networks',
-                'browser_primary_kind' => 'channel',
-            ],
-            [
-                'slug' => 'religious',
-                'label' => 'Religious',
-                'title' => 'Religious',
-                'copy' => 'Religious catalog section ready for episode-wise browsing.',
-                'accent' => '#3ec8d4',
-                'screen' => 'browser',
-                'data_for' => 'religiouschannels',
-                'rail_title' => 'Religious Networks',
-                'browser_primary_kind' => 'channel',
-            ],
+            // Temporarily hidden from the MAG sidebar.
+            // [
+            //     'slug' => 'tv-shows-pak',
+            //     'label' => 'TV Shows Pak',
+            //     'title' => 'TV Shows Pak',
+            //     'copy' => 'Pakistani show libraries prepared for larger catalog expansion.',
+            //     'accent' => '#6fa96f',
+            //     'screen' => 'browser',
+            //     'data_for' => 'tvshowspak',
+            //     'rail_title' => 'TV Shows Pak Networks',
+            //     'browser_primary_kind' => 'channel',
+            // ],
+            // [
+            //     'slug' => 'kids',
+            //     'label' => 'Kids',
+            //     'title' => 'Kids',
+            //     'copy' => 'Kids channels with show-based browsing and episode playback.',
+            //     'accent' => '#f2c24b',
+            //     'screen' => 'browser',
+            //     'data_for' => 'kidchannels',
+            //     'rail_title' => 'Kids Networks',
+            //     'browser_primary_kind' => 'channel',
+            // ],
+            // [
+            //     'slug' => 'religious',
+            //     'label' => 'Religious',
+            //     'title' => 'Religious',
+            //     'copy' => 'Religious catalog section ready for episode-wise browsing.',
+            //     'accent' => '#3ec8d4',
+            //     'screen' => 'browser',
+            //     'data_for' => 'religiouschannels',
+            //     'rail_title' => 'Religious Networks',
+            //     'browser_primary_kind' => 'channel',
+            // ],
             [
                 'slug' => 'stage-shows',
                 'label' => 'Stage Shows',
@@ -1866,17 +1774,17 @@ class MagPortalController extends Controller
                 'rail_title' => 'Stage Show Networks',
                 'browser_primary_kind' => 'genre',
             ],
-            [
-                'slug' => 'sports',
-                'label' => 'Sports',
-                'title' => 'Sports',
-                'copy' => 'Sports libraries and tournament-led shelves for future expansion.',
-                'accent' => '#ff6b57',
-                'screen' => 'browser',
-                'data_for' => 'sports',
-                'rail_title' => 'Sports Networks',
-                'browser_primary_kind' => 'genre',
-            ],
+            // [
+            //     'slug' => 'sports',
+            //     'label' => 'Sports',
+            //     'title' => 'Sports',
+            //     'copy' => 'Sports libraries and tournament-led shelves for future expansion.',
+            //     'accent' => '#ff6b57',
+            //     'screen' => 'browser',
+            //     'data_for' => 'sports',
+            //     'rail_title' => 'Sports Networks',
+            //     'browser_primary_kind' => 'genre',
+            // ],
             [
                 'slug' => 'settings',
                 'label' => 'Settings',
@@ -1912,43 +1820,7 @@ class MagPortalController extends Controller
                 ->get();
         }
 
-        $networkIds = collect();
-
-        if ($dataFor === 'movies') {
-            $recentMovieIds = Movie::query()
-                ->where('status', 1)
-                ->whereNull('deleted_at')
-                ->where('is_recent', 1)
-                ->pluck('id');
-
-            $networkIds = DB::table('movie_content_network')
-                ->whereIn('movie_id', $recentMovieIds)
-                ->pluck('network_id');
-        } elseif ($dataFor === 'webseries') {
-            $networkIds = DB::table('web_series_content_network')->pluck('network_id');
-        } elseif ($dataFor === 'tvshows') {
-            $networkIds = DB::table('tv_show_content_network')->pluck('network_id');
-        } elseif ($dataFor === 'tvshowspak') {
-            $networkIds = DB::table('tv_show_pak_content_network')->pluck('network_id');
-        } elseif ($dataFor === 'kidchannels') {
-            $networkIds = DB::table('kids_channel_content_network')->pluck('network_id');
-        } elseif ($dataFor === 'religiouschannels') {
-            $networkIds = DB::table('rel_channel_content_network')->pluck('network_id');
-        } elseif ($dataFor === 'stageshowspak') {
-            $networkIds = DB::table('state_show_pak_content_network')->pluck('network_id');
-        } elseif ($dataFor === 'sports') {
-            $networkIds = DB::table('sports_category_content_network')->pluck('network_id');
-        } else {
-            $networkIds = collect()
-                ->merge(DB::table('movie_content_network')->pluck('network_id'))
-                ->merge(DB::table('web_series_content_network')->pluck('network_id'))
-                ->merge(DB::table('tv_show_content_network')->pluck('network_id'))
-                ->merge(DB::table('tv_show_pak_content_network')->pluck('network_id'))
-                ->merge(DB::table('kids_channel_content_network')->pluck('network_id'))
-                ->merge(DB::table('rel_channel_content_network')->pluck('network_id'))
-                ->merge(DB::table('sports_category_content_network')->pluck('network_id'))
-                ->merge(DB::table('state_show_pak_content_network')->pluck('network_id'));
-        }
+        $networkIds = $this->frontendActiveNetworkIdsForSection($dataFor);
 
         $ids = $networkIds->filter()->unique()->values();
 
@@ -1962,6 +1834,169 @@ class MagPortalController extends Controller
             ->whereNull('deleted_at')
             ->orderBy('networks_order')
             ->get();
+    }
+
+    protected function frontendActiveNetworkIdsForSection(?string $dataFor): Collection
+    {
+        $movieIds = fn () => Movie::query()
+            ->where('status', 1)
+            ->whereNull('deleted_at')
+            ->where('is_recent', 1)
+            ->pluck('id');
+
+        $webSeriesIds = fn () => WebSeries::query()
+            ->where('status', 1)
+            ->whereNull('deleted_at')
+            ->pluck('id');
+
+        $tvChannelIds = fn () => TvChannel::query()
+            ->where('status', 1)
+            ->whereNull('deleted_at')
+            ->pluck('id');
+
+        $tvChannelPakIds = fn () => TvChannelPak::query()
+            ->where('status', 1)
+            ->whereNull('deleted_at')
+            ->pluck('id');
+
+        $kidsChannelIds = fn () => KidsChannel::query()
+            ->where('status', 1)
+            ->whereNull('deleted_at')
+            ->pluck('id');
+
+        $relChannelIds = fn () => RelChannel::query()
+            ->where('status', 1)
+            ->whereNull('deleted_at')
+            ->pluck('id');
+
+        $sportsCategoryIds = fn () => SportsCategory::query()
+            ->where('status', 1)
+            ->whereNull('deleted_at')
+            ->pluck('id');
+
+        $stageShowIds = fn () => StageshowPak::query()
+            ->where('status', 1)
+            ->whereNull('deleted_at')
+            ->pluck('id');
+
+        $idsFor = function (?string $key) use (
+            $movieIds,
+            $webSeriesIds,
+            $tvChannelIds,
+            $tvChannelPakIds,
+            $kidsChannelIds,
+            $relChannelIds,
+            $sportsCategoryIds,
+            $stageShowIds
+        ): Collection {
+            return match ($key) {
+                'movies' => DB::table('movie_content_network')
+                    ->whereIn('movie_id', $movieIds())
+                    ->pluck('network_id'),
+                'webseries' => DB::table('web_series_content_network')
+                    ->whereIn('webseries_id', $webSeriesIds())
+                    ->pluck('network_id'),
+                'tvshows' => DB::table('tv_show_content_network')
+                    ->whereIn('show_id', $tvChannelIds())
+                    ->pluck('network_id'),
+                'tvshowspak' => DB::table('tv_show_pak_content_network')
+                    ->whereIn('show_id', $tvChannelPakIds())
+                    ->pluck('network_id'),
+                'kidchannels' => DB::table('kids_channel_content_network')
+                    ->whereIn('show_id', $kidsChannelIds())
+                    ->pluck('network_id'),
+                'religiouschannels' => DB::table('rel_channel_content_network')
+                    ->whereIn('show_id', $relChannelIds())
+                    ->pluck('network_id'),
+                'sports' => DB::table('sports_category_content_network')
+                    ->whereIn('sport_category_id', $sportsCategoryIds())
+                    ->pluck('network_id'),
+                'stageshowspak' => DB::table('state_show_pak_content_network')
+                    ->whereIn('movie_id', $stageShowIds())
+                    ->pluck('network_id'),
+                default => collect(),
+            };
+        };
+
+        if ($dataFor) {
+            return $idsFor($dataFor)->filter()->unique()->values();
+        }
+
+        return collect([
+            'movies',
+            'webseries',
+            'tvshows',
+            'tvshowspak',
+            'kidchannels',
+            'religiouschannels',
+            'sports',
+            'stageshowspak',
+        ])->flatMap(fn ($key) => $idsFor($key))
+            ->filter()
+            ->unique()
+            ->values();
+    }
+
+    protected function frontendContentRefsForNetwork(int $networkId, ?string $dataFor): Collection
+    {
+        $refsFor = function (string $key) use ($networkId): Collection {
+            return match ($key) {
+                'movies' => DB::table('movie_content_network')
+                    ->where('network_id', $networkId)
+                    ->pluck('movie_id')
+                    ->map(fn ($id) => (object) ['content_type' => 1, 'content_id' => (int) $id]),
+                'webseries' => DB::table('web_series_content_network')
+                    ->where('network_id', $networkId)
+                    ->pluck('webseries_id')
+                    ->map(fn ($id) => (object) ['content_type' => 2, 'content_id' => (int) $id]),
+                'tvshows' => DB::table('tv_show_content_network')
+                    ->where('network_id', $networkId)
+                    ->pluck('show_id')
+                    ->map(fn ($id) => (object) ['content_type' => 4, 'content_id' => (int) $id]),
+                'tvshowspak' => DB::table('tv_show_pak_content_network')
+                    ->where('network_id', $networkId)
+                    ->pluck('show_id')
+                    ->map(fn ($id) => (object) ['content_type' => 5, 'content_id' => (int) $id]),
+                'kidchannels' => DB::table('kids_channel_content_network')
+                    ->where('network_id', $networkId)
+                    ->pluck('show_id')
+                    ->map(fn ($id) => (object) ['content_type' => 6, 'content_id' => (int) $id]),
+                'religiouschannels' => DB::table('rel_channel_content_network')
+                    ->where('network_id', $networkId)
+                    ->pluck('show_id')
+                    ->map(fn ($id) => (object) ['content_type' => 7, 'content_id' => (int) $id]),
+                'sports' => DB::table('sports_category_content_network')
+                    ->where('network_id', $networkId)
+                    ->pluck('sport_category_id')
+                    ->map(fn ($id) => (object) ['content_type' => 8, 'content_id' => (int) $id]),
+                'stageshowspak' => DB::table('state_show_pak_content_network')
+                    ->where('network_id', $networkId)
+                    ->pluck('movie_id')
+                    ->map(fn ($id) => (object) ['content_type' => 9, 'content_id' => (int) $id]),
+                default => collect(),
+            };
+        };
+
+        if ($dataFor && $dataFor !== 'content') {
+            $refs = $refsFor($dataFor);
+
+            if ($refs->isNotEmpty()) {
+                return $refs
+                    ->filter(fn ($ref) => !empty($ref->content_id))
+                    ->unique(fn ($ref) => $ref->content_type . ':' . $ref->content_id)
+                    ->values();
+            }
+        }
+
+        return DB::table('content_network_log')
+            ->where('network_id', $networkId)
+            ->when(!empty($this->frontendContentTypesForDataFor($dataFor)), function ($query) use ($dataFor) {
+                $query->whereIn('content_type', $this->frontendContentTypesForDataFor($dataFor));
+            })
+            ->get()
+            ->filter(fn ($ref) => !empty($ref->content_id))
+            ->unique(fn ($ref) => $ref->content_type . ':' . $ref->content_id)
+            ->values();
     }
 
     protected function buildFrontendLiveRows(Collection $channels): array
@@ -2067,11 +2102,7 @@ class MagPortalController extends Controller
 
     protected function buildFrontendNetworkPayload($network, ?string $dataFor): array
     {
-        $contentTypes = $this->frontendContentTypesForDataFor($dataFor);
-        $logs = DB::table('content_network_log')
-            ->where('network_id', $network->id)
-            ->when(!empty($contentTypes), fn ($query) => $query->whereIn('content_type', $contentTypes))
-            ->get();
+        $logs = $this->frontendContentRefsForNetwork((int) $network->id, $dataFor);
 
         $rows = [
             'movies' => [],
@@ -3515,11 +3546,18 @@ class MagPortalController extends Controller
 
     public function apiLanguages(Request $request): JsonResponse
     {
-        $this->resolvePortalUser($request, true);
+        [, , $plans] = $this->resolvePortalUser($request, true);
+        $languageIds = $this->getLiveChannelsForPlans($plans, $request)
+            ->map(fn ($channel) => (int) ($channel->channel_language ?? 0))
+            ->filter()
+            ->unique()
+            ->values();
 
         $languages = Language::whereNull('deleted_at')
             ->where('status', 1)
+            ->whereIn('id', $languageIds)
             ->with('slider')
+            ->orderBy('id')
             ->get()
             ->map(function ($lang) {
                 return [
@@ -3539,19 +3577,14 @@ class MagPortalController extends Controller
 
     public function apiGenres(Request $request): JsonResponse
     {
-        $this->resolvePortalUser($request, true);
+        [, , $plans] = $this->resolvePortalUser($request, true);
 
         $languageId = $request->query('language_id');
-
-        $query = Channel::where('channels.status', 1)
-            ->whereNull('channels.deleted_at')
-            ->leftJoin('languages', 'channels.channel_language', '=', 'languages.id');
-
-        if (!empty($languageId) && is_numeric($languageId)) {
-            $query->where('languages.id', (int) $languageId);
-        }
-
-        $channels = $query->get(['channels.genres']);
+        $channels = $this->getLiveChannelsForPlans($plans, $request)
+            ->when(!empty($languageId) && is_numeric($languageId), fn (Collection $items) => $items->filter(
+                fn ($channel) => (int) ($channel->channel_language ?? 0) === (int) $languageId
+            ))
+            ->values();
 
         $genreSet = collect();
         foreach ($channels as $ch) {
@@ -3569,35 +3602,22 @@ class MagPortalController extends Controller
 
     public function apiChannels(Request $request): JsonResponse
     {
-        $this->resolvePortalUser($request, true);
+        [, , $plans] = $this->resolvePortalUser($request, true);
 
         $languageId = $request->input('language_id');
         $genre      = $request->input('genre', '');
 
-        $query = Channel::where('channels.status', 1)
-            ->whereNull('channels.deleted_at')
-            ->leftJoin('languages', 'channels.channel_language', '=', 'languages.id')
-            ->select(
-                'channels.id',
-                'channels.channel_name',
-                'channels.channel_logo',
-                'channels.channel_number',
-                'channels.stream_type',
-                'channels.genres',
-                'channels.channel_description',
-                'languages.id as language_id',
-                'languages.title as language_title'
-            );
-
-        if (!empty($languageId) && is_numeric($languageId)) {
-            $query->where('languages.id', (int) $languageId);
-        }
-
-        if (!empty($genre)) {
-            $query->where('channels.genres', 'like', '%' . $genre . '%');
-        }
-
-        $channels = $query->orderBy('channels.channel_number', 'asc')->get()
+        $channels = $this->getLiveChannelsForPlans($plans, $request)
+            ->when(!empty($languageId) && is_numeric($languageId), fn (Collection $items) => $items->filter(
+                fn ($channel) => (int) ($channel->channel_language ?? 0) === (int) $languageId
+            ))
+            ->when(!empty($genre), function (Collection $items) use ($genre) {
+                return $items->filter(function ($channel) use ($genre) {
+                    return collect($this->parseCsvValues((string) ($channel->genres ?? '')))
+                        ->contains(fn ($value) => strcasecmp((string) $value, (string) $genre) === 0);
+                });
+            })
+            ->values()
             ->map(fn($ch) => [
                 'id'          => $ch->id,
                 'name'        => (string) $ch->channel_name,
@@ -3634,16 +3654,19 @@ class MagPortalController extends Controller
     {
         $this->resolvePortalUser($request, true);
 
-        // Get network IDs that have movies with is_recent=1
+        // Get network IDs that have active recent movies.
         $networkIds = DB::table('movie_content_network')
-            ->whereIn('movie_id', Movie::where('is_recent', 1)->pluck('id'))
+            ->whereIn('movie_id', Movie::query()
+                ->where('status', 1)
+                ->where('is_recent', 1)
+                ->whereNull('deleted_at')
+                ->pluck('id'))
             ->distinct()
             ->pluck('network_id')
             ->toArray();
 
         $networks = ContentNetwork::whereIn('id', $networkIds)
             ->whereNull('deleted_at')
-            ->where('is_content', 1)
             ->where('status', 1)
             ->orderBy('networks_order', 'asc')
             ->get()
@@ -3752,11 +3775,17 @@ class MagPortalController extends Controller
     {
         $this->resolvePortalUser($request, true);
 
-        $networkIds = \App\Models\WebSeriesContentNetwork::distinct()->pluck('network_id')->toArray();
+        $networkIds = \App\Models\WebSeriesContentNetwork::query()
+            ->whereIn('webseries_id', WebSeries::query()
+                ->where('status', 1)
+                ->whereNull('deleted_at')
+                ->pluck('id'))
+            ->distinct()
+            ->pluck('network_id')
+            ->toArray();
 
         $networks = ContentNetwork::whereIn('id', $networkIds)
             ->whereNull('deleted_at')
-            ->where('is_content', 1)
             ->where('status', 1)
             ->orderBy('networks_order', 'asc')
             ->get()
@@ -3881,13 +3910,17 @@ class MagPortalController extends Controller
     {
         $this->resolvePortalUser($request, true);
 
-        $networkIds = \App\Models\TvShowContentNetwork::distinct()
+        $networkIds = \App\Models\TvShowContentNetwork::query()
+            ->whereIn('show_id', TvChannel::query()
+                ->where('status', 1)
+                ->whereNull('deleted_at')
+                ->pluck('id'))
+            ->distinct()
             ->pluck('network_id')
             ->toArray();
 
         $networks = ContentNetwork::whereIn('id', $networkIds)
             ->whereNull('deleted_at')
-            ->where('is_content', 1)
             ->where('status', 1)
             ->orderBy('networks_order', 'asc')
             ->get()
@@ -3909,6 +3942,10 @@ class MagPortalController extends Controller
 
         $channelIds = DB::table('tv_show_content_network')
             ->where('network_id', $networkId)
+            ->whereIn('show_id', TvChannel::query()
+                ->where('status', 1)
+                ->whereNull('deleted_at')
+                ->pluck('id'))
             ->pluck('show_id')
             ->toArray();
 
@@ -3938,6 +3975,10 @@ class MagPortalController extends Controller
         $channelIds = DB::table('content_network_log')
             ->where('network_id', $networkId)
             ->where('content_type', 4)
+            ->whereIn('content_id', TvChannel::query()
+                ->where('status', 1)
+                ->whereNull('deleted_at')
+                ->pluck('id'))
             ->pluck('content_id')
             ->toArray();
 
@@ -4000,6 +4041,10 @@ class MagPortalController extends Controller
         $this->resolvePortalUser($request, true);
 
         $networkIds = DB::table('kids_channel_content_network')
+            ->whereIn('show_id', KidsChannel::query()
+                ->where('status', 1)
+                ->whereNull('deleted_at')
+                ->pluck('id'))
             ->distinct()
             ->pluck('network_id')
             ->toArray();
@@ -4024,13 +4069,17 @@ class MagPortalController extends Controller
         $this->resolvePortalUser($request, true);
         $networkId = (int) $request->query('network_id', 0);
 
-        // kids_channel_content_network.show_id → KidsShow.id
-        $showIds = DB::table('kids_channel_content_network')
+        // kids_channel_content_network.show_id follows the app mapping and stores KidsChannel.id.
+        $channelIds = DB::table('kids_channel_content_network')
             ->where('network_id', $networkId)
+            ->whereIn('show_id', KidsChannel::query()
+                ->where('status', 1)
+                ->whereNull('deleted_at')
+                ->pluck('id'))
             ->pluck('show_id')
             ->toArray();
 
-        $genres = KidsShow::whereIn('id', $showIds)
+        $genres = KidsShow::whereIn('kid_channel_id', $channelIds)
             ->where('status', 1)
             ->whereNull('deleted_at')
             ->pluck('genre')
@@ -4052,13 +4101,17 @@ class MagPortalController extends Controller
         $page      = max(1, (int) $request->query('page', 1));
         $records   = max(1, min(100, (int) $request->query('records', 30)));
 
-        // kids_channel_content_network.show_id → KidsShow.id
-        $showIds = DB::table('kids_channel_content_network')
+        // kids_channel_content_network.show_id follows the app mapping and stores KidsChannel.id.
+        $channelIds = DB::table('kids_channel_content_network')
             ->where('network_id', $networkId)
+            ->whereIn('show_id', KidsChannel::query()
+                ->where('status', 1)
+                ->whereNull('deleted_at')
+                ->pluck('id'))
             ->pluck('show_id')
             ->toArray();
 
-        $query = KidsShow::whereIn('id', $showIds)
+        $query = KidsShow::whereIn('kid_channel_id', $channelIds)
             ->where('status', 1)
             ->whereNull('deleted_at');
 
@@ -4089,7 +4142,7 @@ class MagPortalController extends Controller
 
         $sliders = DB::table('content_network_slider')
             ->where('content_network_id', $networkId)
-            ->where('slider_for', 'kids')
+            ->where('slider_for', 'kidchannels')
             ->where('status', 1)
             ->whereNull('deleted_at')
             ->get()
@@ -4100,7 +4153,7 @@ class MagPortalController extends Controller
             ]);
 
         // genres from the same show set
-        $genres = KidsShow::whereIn('id', $showIds)
+        $genres = KidsShow::whereIn('kid_channel_id', $channelIds)
             ->where('status', 1)
             ->whereNull('deleted_at')
             ->pluck('genre')
